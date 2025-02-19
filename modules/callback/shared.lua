@@ -1,0 +1,1 @@
+st.callback = exports.st_libs:getCallbackAPI()
