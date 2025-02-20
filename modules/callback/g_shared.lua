@@ -4,6 +4,8 @@ local registeredCallback = {}
 
 local isServerSide = IsDuplicityVersion()
 
+st.require("promise")
+
 st.callback = {}
 
 local function executeCallback(name, ...)
@@ -12,11 +14,13 @@ local function executeCallback(name, ...)
 end
 
 local function executeResponse(requestId, fromRessource, ...)
-    if not responseCallback[requestId] then return eprint(('No callback response for: %d - Called from: %d'):format(name, fromRessource)) end
+    if not responseCallback[requestId] then 
+        return eprint(('No callback response for: %d - Called from: %d'):format(name, fromRessource)) 
+    end
+
     responseCallback[requestId](...)
     responseCallback[requestId] = nil
 end
-
 
 ---@param name string the name of the event
 ---@param cb function
@@ -48,10 +52,18 @@ if isServerSide then
             return eprint('Callback Module: Player is not connected - source: ' .. source)
         end
 
-        responseCallback[currentRequestId] = cb
-        TriggerClientEvent('st_libs:triggerCallback', source, name, currentRequestId, GetInvokingResource() or "unknown", ...)
-
-        currentRequestId = currentRequestId < 65535 and currentRequestId + 1 or 0
+        local args = table.pack(...)
+        if not cb then
+            return st.promise.new(function(resolver)
+                responseCallback[currentRequestId] = resolver
+                TriggerClientEvent('st_libs:triggerCallback', source, name, currentRequestId, GetInvokingResource() or "unknown", table.unpack(args))
+                currentRequestId = (currentRequestId < 65535) and (currentRequestId + 1) or 0
+            end)
+        else
+            responseCallback[currentRequestId] = cb
+            TriggerClientEvent('st_libs:triggerCallback', source, name, currentRequestId, GetInvokingResource() or "unknown", table.unpack(args))
+            currentRequestId = (currentRequestId < 65535) and (currentRequestId + 1) or 0
+        end
     end
 
     function st.callback.triggerServer(name, cb, ...)
@@ -59,10 +71,13 @@ if isServerSide then
             return eprint('No server callback for:', name) 
         end
 
-        if cb then
-            cb(executeCallback(name, ...))
+        local args = table.pack(...)
+        if not cb then
+            return st.promise.new(function(resolver)
+                resolver(executeCallback(name, table.unpack(args)))
+            end)
         else
-            return executeCallback(name, ...)
+            cb(executeCallback(name, table.unpack(args)))
         end
     end
 
@@ -77,22 +92,32 @@ else
     ---@param cb function return of the event
     ---@param ...? any
     function st.callback.triggerServer(name, cb, ...)
-        responseCallback[currentRequestId] = cb
-
-        TriggerServerEvent('st_libs:triggerCallback', name, currentRequestId, GetInvokingResource() or 'unknown', ...)
-
-        currentRequestId = currentRequestId < 65535 and currentRequestId + 1 or 0
+        local args = table.pack(...)
+        if not cb then
+            return st.promise.new(function(resolver)
+                responseCallback[currentRequestId] = resolver
+                TriggerServerEvent('st_libs:triggerCallback', name, currentRequestId, GetInvokingResource() or 'unknown', table.unpack(args))
+                currentRequestId = (currentRequestId < 65535) and (currentRequestId + 1) or 0
+            end)
+        else
+            responseCallback[currentRequestId] = cb
+            TriggerServerEvent('st_libs:triggerCallback', name, currentRequestId, GetInvokingResource() or 'unknown', table.unpack(args))
+            currentRequestId = (currentRequestId < 65535) and (currentRequestId + 1) or 0
+        end
     end
 
     function st.callback.triggerClient(name, cb, ...)
         if not registeredCallback[name] then 
             return eprint('No client callback for:', name) 
         end
-        
-        if cb then
-            cb(executeCallback(name, ...))
+
+        local args = table.pack(...)
+        if not cb then
+            return st.promise.new(function(resolver)
+                resolver(executeCallback(name, table.unpack(args)))
+            end)
         else
-            return executeCallback(name, ...)
+            cb(executeCallback(name, table.unpack(args)))
         end
     end
 
