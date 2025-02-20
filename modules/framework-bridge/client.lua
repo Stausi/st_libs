@@ -2,6 +2,11 @@ if not table.merge then
     st.require('table')
 end
 
+local mainResourceFramework = {
+    ESX = { "es_extended" },
+    QB = { "qb-core" },
+}
+
 ---@class FrameworkClass : table Framework class
 ---@field name string @FrameworkClass name
 ---@field object table  @FrameworkClass object
@@ -21,14 +26,13 @@ end
 
 ---@return void
 function FrameworkClass:init()
-    local name, object = self:get()
-    while not name or table.isEmpty(object) do
-        Citizen.Wait(1000)
-        name, object = self:get()
-    end
+    self.name = self:get()
 
-    self.name = name
-    self.object = object
+    if self.name == "ESX" then
+        self.object = exports["es_extended"]:getSharedObject()
+    elseif self.name == "QB" then
+        self.object = exports["qb-core"]:GetCoreObject()
+    end
 
     if self.name == "" or table.isEmpty(self.object) then
         return
@@ -40,23 +44,39 @@ end
 ---@return string Name of the frameworkt
 ---@return table Object of the framework
 function FrameworkClass:get()
-    if self.name ~= "" then 
-        return self.name, self.object
-    end
-
-    if not table.isEmpty(self.object) then
-        return self.name, self.object
-    end
+    if self.name ~= "" then return self.name end
   
-    if GetResourceState('es_extended') == "started" then
-        self.name = "ESX"
-        self.object = exports["es_extended"]:getSharedObject()
-    elseif GetResourceState('qb-core') == "started" then
-        self.name = "QB"
-        self.object = exports["qb-core"]:GetCoreObject()
+    for framework, resources in pairs(mainResourceFramework) do
+        local rightFramework = true
+        for _, resource in pairs(resources) do
+            if resource:sub(1, 1) == "!" then
+                if GetResourceState(resource) ~= "missing" then
+                    rightFramework = false
+                    break
+                end
+            else
+                if GetResourceState(resource) == "missing" then
+                    rightFramework = false
+                    break
+                end
+            end
+        end
+
+        if rightFramework then
+            self.name = framework
+            for _, resource in pairs(resources) do
+                if resource:sub(1, 1) ~= "!" then
+                    while GetResourceState(resource) ~= "started" do
+                        bprint("Waiting start of " .. framework)
+                        Wait(1000)
+                    end
+                end
+            end
+            return self.name
+        end
     end
 
-    return self.name, self.object
+    return self.name
 end
 
 ---@return table Player data
@@ -120,40 +140,40 @@ function FrameworkClass:is(name)
     return self:get() == name
 end
 
-if FrameworkClass:is("ESX") then
+st.framework = FrameworkClass:new()
+
+if st.framework:is("ESX") then
     RegisterNetEvent("esx:playerLoaded", function(xPlayer)
-        self.player = xPlayer
+        st.framework.player = xPlayer
     end)
 
     RegisterNetEvent("esx:onPlayerLogout", function()
-        self.player = nil
+        st.framework.player = nil
     end)
 
     RegisterNetEvent("esx:setJob", function(job)
-        self.player.job = job
+        st.framework.player.job = job
     end)
 end
 
-if FrameworkClass:is("QB") then
+if st.framework:is("QB") then
     RegisterNetEvent("QBCore:Client:OnJobUpdate", function(JobInfo)
-        self.player.job = JobInfo
+        st.framework.player.job = JobInfo
     end)
 
     RegisterNetEvent("QBCore:Client:OnGangUpdate", function(GangInfo)
-        self.player.gang = GangInfo
+        st.framework.player.gang = GangInfo
     end)
 
     RegisterNetEvent("QBCore:Client:SetDuty", function(duty)
-        if self.player and self.player.job then
-            self.player.job.onduty = duty
+        if st.framework.player and st.framework.player.job then
+            st.framework.player.job.onduty = duty
         end
     end)
 
     RegisterNetEvent("qb-clothes:client:CreateFirstCharacter", function()
-        self.object.Functions.GetPlayerData(function(pd)
-            self.player = pd
+        st.framework.object.Functions.GetPlayerData(function(pd)
+            st.framework.player = pd
         end)
     end)
 end
-
-st.framework = FrameworkClass:new()
