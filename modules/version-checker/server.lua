@@ -90,7 +90,7 @@ function st.versionChecker.checkUpdate()
 		resultData = json.decode(resultData)
 
 		if not resultData.version then
-			return print("^3" .. myResource .. ": error in the format of version checker. Impossible to check your version.^0")
+			return print("^3" .. myResource .. ": " .. resultData.error .. "^0")
 		end
 
 		local lastVersion = convertVersion(resultData.version:sub(1))
