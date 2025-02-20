@@ -96,18 +96,6 @@ end
 ---@param count integer
 ---@param metadata? table
 ---@return boolean
-function InventoryClass:CanCarryItem(inv, item, count, metadata)
-    if self:is("OX") then
-        return self.object:CanCarryItem(inv, item, count, metadata)
-    end
-    return false
-end
-
----@param inv table | string | integer
----@param item string
----@param count integer
----@param metadata? table
----@return boolean
 function InventoryClass:GetItem(inv, item, metadata)
     if self:is("OX") then
         return self.object:GetItem(inv, item, metadata)
@@ -166,6 +154,18 @@ end
 function InventoryClass:RemoveItem(inv, item, count, metadata, slot)
     if self:is("OX") then
         return self.object:RemoveItem(inv, item, count, metadata, slot)
+    end
+    return false
+end
+
+---@param inv table | string | integer
+---@param item string
+---@param count integer
+---@param metadata? table
+---@return boolean
+function InventoryClass:CanCarryItem(inv, item, count, metadata)
+    if self:is("OX") then
+        return self.object:CanCarryItem(inv, item, count, metadata)
     end
     return false
 end
