@@ -38,11 +38,14 @@ if st.framework:is("ESX") then
 
     AddEventHandler('esx:playerDropped', function(playerId)
         local user = st.User:get(playerId)
-        if user and st.jobscache.data[user.getJob().name] then
-            st.jobscache.data[user.getJob().name] = st.jobscache.data[user.getJob().name] - 1
+        if not user then return end
 
-            if st.jobscache.data[user.getJob().name] < 0 then
-                st.jobscache.data[user.getJob().name] = nil
+        local name = user:getJob().name
+        if st.jobscache.data[name] then
+            st.jobscache.data[name] = st.jobscache.data[name] - 1
+
+            if st.jobscache.data[name] < 0 then
+                st.jobscache.data[name] = nil
             end
         end
     end)
