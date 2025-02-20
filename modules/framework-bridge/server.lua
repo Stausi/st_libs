@@ -6,6 +6,10 @@ local mainResourceFramework = {
     QB = { "qb-core" },
 }
 
+local mainResourceInventory = {
+    OX = { "ox_inventory" },
+}
+
 -------------
 -- USER CLASS
 -------------
@@ -26,10 +30,10 @@ function User:get(source)
 end
 
 function User:init()
-    if jo.framework:is("ESX") then
-        self.data = jo.framework.object.GetPlayerFromId(self.source)
-    elseif jo.framework:is("QB") then
-        self.data = jo.framework.object.GetPlayer(self.source)
+    if st.framework:is("ESX") then
+        self.data = st.framework.object.GetPlayerFromId(self.source)
+    elseif st.framework:is("QB") then
+        self.data = st.framework.object.GetPlayer(self.source)
     end
 end
 
@@ -40,9 +44,9 @@ function User:getMoney(moneyType)
         moneyType = "cash" 
     end
 
-    if jo.framework:is("ESX") then
+    if st.framework:is("ESX") then
         return self.data.getAccount(moneyType)?.money or 0
-    elseif jo.framework:is("QB") then
+    elseif st.framework:is("QB") then
         return self.data.money[moneyType] or 0
     end
 
@@ -61,9 +65,9 @@ end
 ---@return boolean
 function User:RemoveMoney(moneyType, money)
     if self:HasMoney(moneyType, money) then
-        if jo.framework:is("ESX") then
+        if st.framework:is("ESX") then
             self.data.removeAccountMoney(moneyType, money)
-        elseif jo.framework:is("QB") then
+        elseif st.framework:is("QB") then
             self.data.RemoveMoney(moneyType, money)
         end
         return true
@@ -76,18 +80,18 @@ end
 ---@param money integer
 ---@return boolean
 function User:addMoney(moneyType, money)
-    if jo.framework:is("ESX") then
+    if st.framework:is("ESX") then
         self.data.addAccountMoney(moneyType, money)
-    elseif jo.framework:is("QB") then
+    elseif st.framework:is("QB") then
         self.data.addMoney(moneyType, money)
     end
 end
 
 ---@return string Player Job
 function User:getJob()
-    if jo.framework:is("ESX") then
+    if st.framework:is("ESX") then
         return self.data.getJob()
-    elseif jo.framework:is("QB") then
+    elseif st.framework:is("QB") then
         return self.data.job
     end
 
@@ -96,11 +100,65 @@ end
 
 ---@return string Gang name
 function User:getGang()
-    if jo.framework:is("QB") then
+    if st.framework:is("QB") then
         return self.data.gang
     end
 
     return nil
+end
+
+---@param item string Item name
+---@param count integer Item count
+---@param metadata? table Item metadata
+---@return table Identifiers
+function User:CanCarryItem(item, count, metadata)
+    return st.inventory:CanCarryItem(self.source, item, count, metadata)
+end
+
+---@param item string Item name
+---@param metadata? table Item metadata
+---@return table Item
+function User:GetItem(item, metadata)
+    return st.inventory:GetItem(self.source, item, metadata)
+end
+
+---@param item string Item name
+---@param metadata? table Item metadata
+---@return integer Item count
+function User:GetItemCount(item, metadata)
+    return st.inventory:GetItemCount(self.source, item, metadata)
+end
+
+---@param item string Item name
+---@param metadata? table Item metadata
+---@return table Items
+function User:GetInventoryItems(item, metadata)
+    return st.inventory:GetInventoryItems(self.source, item, metadata)
+end
+
+---@param item string Item name
+---@param metadata? table Item metadata
+---@return integer Item count
+function User:GetInventoryItemsCount(item, metadata)
+    return st.inventory:GetInventoryItemsCount(self.source, item, metadata)
+end
+
+---@param item string Item name
+---@param count integer Item count
+---@param metadata? table Item metadata
+---@param slot? integer Item slot
+---@return boolean
+function User:AddItem(item, count, metadata, slot)
+    return st.inventory:AddItem(self.source, item, count, metadata, slot)
+end
+
+---@param item string Item name
+---@param count integer Item count
+---@param metadata? table Item metadata
+---@param slot? integer Item slot
+---@return boolean
+function User:RemoveItem(item, count, metadata, slot)
+    return st.inventory:RemoveItem(self.source, item, count, metadata, slot)
 end
 
 st.User = User
@@ -184,6 +242,64 @@ function FrameworkClass:is(name)
     return self:get() == name
 end
 
--- Todo inventory
+-------------
+-- USER DATA
+-------------
+
+---@param source integer source ID
+---@return table
+function FrameworkClass:getUser(source)
+    local user = User:get(source)
+    return user
+end
+
+---@param source integer source ID
+---@return table identifier
+function FrameworkClass:getUserIdentifiers(source)
+    local user = User:get(source)
+    return user:getIdentifiers()
+end
+
+---@param source integer source ID
+---@return string job Player job
+function FrameworkClass:getJob(source)
+    local user = User:get(source)
+    return user:getJob()
+end
+
+function FrameworkClass:getGang(source)
+    local user = User:get(source)
+    return user:getGang()
+end
+  
+-------------
+-- END USER DATA
+-------------
+
+-------------
+-- MONEY
+-------------
+
+---@param source integer
+---@param amount number
+---@param moneyType string cash, bank, default: cash
+---@param removeIfCan? boolean (optinal) default : false
+---@return boolean
+function FrameworkClass:canUserBuy(source, amount, moneyType, removeIfCan)
+    local user = User:get(source)
+    return user:HasMoney(amount, moneyType, removeIfCan)
+end
+
+---@param source integer
+---@param amount number
+---@param moneyType string cash, bank, default: cash
+function FrameworkClass:addMoney(source, amount, moneyType)
+    local user = User:get(source)
+    user:addMoney(amount, moneyType or 0)
+end
+
+-------------
+-- END MONEY
+-------------
 
 st.framework = FrameworkClass:new()
