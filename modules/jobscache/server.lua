@@ -37,12 +37,12 @@ if st.framework:is("ESX") then
     end)
 
     AddEventHandler('esx:playerDropped', function(playerId)
-        local xPlayer = ESX.GetPlayerFromId(playerId)
-        if st.jobscache.data[xPlayer.getJob().name] then
-            st.jobscache.data[xPlayer.getJob().name] = st.jobscache.data[xPlayer.getJob().name] - 1
+        local user = st.User:get(playerId)
+        if user and st.jobscache.data[user.getJob().name] then
+            st.jobscache.data[user.getJob().name] = st.jobscache.data[user.getJob().name] - 1
 
-            if st.jobscache.data[xPlayer.getJob().name] < 0 then
-                st.jobscache.data[xPlayer.getJob().name] = nil
+            if st.jobscache.data[user.getJob().name] < 0 then
+                st.jobscache.data[user.getJob().name] = nil
             end
         end
     end)

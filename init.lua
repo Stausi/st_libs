@@ -172,6 +172,11 @@ local st = setmetatable({
     __call = noFunction
 })
 
+cache = {
+    resource = st.name,
+    game = GetGameName(),
+}
+
 function st.waitLibLoading()
     while not st.libLoaded do
         Wait(0)
