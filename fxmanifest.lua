@@ -18,5 +18,6 @@ shared_scripts {
 
 st_libs {
 	"framework-bridge",
+	"inventory-bridge",
 	"version-checker"
 }

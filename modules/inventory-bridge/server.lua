@@ -1,3 +1,10 @@
+st.require("table")
+st.require("string")
+
+local mainResourceInventory = {
+    OX = { "ox_inventory" },
+}
+
 -------------
 -- INVENTORY
 -------------

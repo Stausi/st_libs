@@ -14,6 +14,7 @@ local globalModuleLoaded = {}
 
 local alias = {
     framework = "framework-bridge",
+    inventory = "inventory-bridge",
     versionChecker = "version-checker",
     triggerEvent = "trigger-event"
 }
@@ -276,7 +277,8 @@ local priorityModules = {
     print = 2,
     file = 3, 
     hook = 4, 
-    framework = 5 
+    framework = 5,
+    inventory = 6,
 }
 
 table.sort(modules, function(a, b)

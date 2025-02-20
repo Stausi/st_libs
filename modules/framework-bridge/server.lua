@@ -6,10 +6,6 @@ local mainResourceFramework = {
     QB = { "qb-core" },
 }
 
-local mainResourceInventory = {
-    OX = { "ox_inventory" },
-}
-
 -------------
 -- USER CLASS
 -------------
