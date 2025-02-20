@@ -93,7 +93,7 @@ function st.versionChecker.checkUpdate()
 			return print("^3" .. myResource .. ": " .. resultData.error .. "^0")
 		end
 
-		local lastVersion = convertVersion(resultData.version:sub(1))
+		local lastVersion = convertVersion(resultData.version:sub(2))
 		if convertVersion(currentVersion) >= lastVersion then
 			return print(("^3%s: \x1b[92mUp to date - Version %s^0"):format(myResource, currentVersion))
 		end
