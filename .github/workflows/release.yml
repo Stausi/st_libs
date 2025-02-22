@@ -37,7 +37,7 @@ jobs:
           cp README.md LICENSE fxmanifest.lua init.lua temp/st_libs
 
           # Copy any extra folders needed by your resource
-          cp -r modules resource locales temp/st_libs || true
+          cp -r modules assets resource locales temp/st_libs || true
 
           # Copy the web build output
           cp -r web/build temp/st_libs/web
