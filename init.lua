@@ -19,6 +19,10 @@ local alias = {
     triggerEvent = "trigger-event"
 }
 
+local interfaceModules = {
+    "notification",
+}
+
 local function getAlias(module)
     if module == "meCoords" or module == "mePlayerId" or module == "meServerId" then 
         return "me" 
@@ -39,7 +43,15 @@ end
 
 --list modules required
 for i = 1, GetNumResourceMetadata(resourceName, "st_lib") do
-    modules[#modules + 1] = getAlias(GetResourceMetadata(resourceName, "st_lib", i - 1))
+    local module = getAlias(GetResourceMetadata(resourceName, "st_lib", i - 1))
+
+    if module == "interfaces" then
+        for _, ifaceModule in ipairs(interfaceModules) do
+            modules[#modules + 1] = ifaceModule
+        end
+    else
+        modules[#modules + 1] = module
+    end
 end
 
 if st and st.name == st_libs then
@@ -183,6 +195,10 @@ function st.waitLibLoading()
     end
 end
 
+function st.hasLoaded()
+    return st.libLoaded
+end
+
 function st.isModuleLoaded(name, needLocal)
     local name = getAlias(name)
     return isModuleLoaded(name, needLocal)
@@ -208,9 +224,16 @@ end
 
 _ENV.st = st
 
-
 if GetResourceState(st_libs) ~= "started" and resourceName ~= "st_libs" then
     error("^1st_libs must be started before this resource.^0", 0)
+end
+
+if resourceName == "st_libs" then
+    if not LoadResourceFile(st.name, 'web/build/index.html') then
+        local err = '^1Unable to load UI. Build st_libs or download the latest release.\n	^3https://github.com/Stausi/st_libs/releases/latest/download/st_libs.zip^0'
+        function st.hasLoaded() return err end
+        error(err)
+    end
 end
 
 -------------
@@ -297,6 +320,53 @@ table.sort(modules, function(a, b)
     return a < b
 end)
 
+-- Todo: Rewrite locale system
+-- Todo: Rewrite config system
+
+if context == "client" then
+    -------------
+    -- Locale initialization
+    -------------
+
+    local function loadLocaleFile(key)
+        local file = LoadResourceFile(cache.resource, ('locales/%s.json'):format(key)) or LoadResourceFile(cache.resource, 'locales/en.json')
+        return file and json.decode(file) or {}
+    end
+
+    function st.getLocaleKey() return 
+        "en"
+    end
+
+    function st.setLocale(key)
+        TriggerEvent('st_lib:setLocale', key)
+
+        SendNUIMessage({
+            action = 'setLocale',
+            data = loadLocaleFile(key)
+        })
+    end
+
+    RegisterNUICallback('init', function(_, cb)
+        cb(1)
+
+        SendNUIMessage({
+            action = 'setLocale',
+            data = loadLocaleFile("en")
+        })
+    end)
+
+    -------------
+    -- Nui initialization
+    -------------
+
+    RegisterNUICallback('getConfig', function(_, cb)
+        cb({
+            primaryColor = GetConvar('st:primaryColor', 'blue'),
+            primaryShade = GetConvarInt('st:primaryShade', 8)
+        })
+    end)
+end
+
 -------------
 -- LOAD REQUIRED MODULES
 -------------
@@ -314,4 +384,5 @@ for _, name in ipairs(modules) do
         CreateExport("StopAddon", st.versionChecker.stopAddon)
     end
 end
+
 st.libLoaded = true

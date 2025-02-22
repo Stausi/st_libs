@@ -7,13 +7,22 @@ fx_version "adamant"
 game "gta5"
 lua54 "yes"
 
+ui_page 'web/build/index.html'
+
 files {
 	"init.lua",
 	"modules/**.lua",
+	'web/build/index.html',
+    'web/build/**/*',
+	'assets/*.png'
 }
 
 shared_scripts {
 	"init.lua"
+}
+
+client_scripts {
+    'modules/interaction/client.lua',
 }
 
 st_libs {
