@@ -27,9 +27,24 @@ jobs:
         run: npm run build
         working-directory: web
 
-      - name: Zip entire repository as st_libs.zip
+      - name: Prepare final package folder
         run: |
-          zip -r st_libs.zip web/build README.md LICENSE
+          # Create a temporary folder structure
+          mkdir -p temp/st_libs
+          mkdir -p temp/st_libs/web
+
+          # Copy the top-level files you want included
+          cp README.md LICENSE fxmanifest.lua init.lua temp/st_libs
+
+          # Copy any extra folders needed by your resource
+          cp -r modules resource locales temp/st_libs || true
+
+          # Copy the web build output
+          cp -r web/build temp/st_libs/web
+
+          # Now create the zip from the temp folder
+          cd temp
+          zip -r ../st_libs.zip st_libs
 
       - name: Upload st_libs.zip to Release
         uses: actions/upload-release-asset@v1
