@@ -3,6 +3,7 @@ name: Create Release with Zip File
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,19 +11,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Zip entire repository as st_libs.zip
-      run: |
-        zip -r st_libs.zip . -x ".git/*"
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+      
+      - name: Install dependencies
+        run: npm install
+        working-directory: web
 
-    - name: Upload st_libs.zip to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./st_libs.zip
-        asset_name: st_libs.zip
-        asset_content_type: application/zip
+      - name: Build web
+        run: npm run build
+        working-directory: web
+
+      - name: Zip entire repository as st_libs.zip
+        run: |
+          zip -r st_libs.zip web/build README.md LICENSE
+
+      - name: Upload st_libs.zip to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./st_libs.zip
+          asset_name: st_libs.zip
+          asset_content_type: application/zip
