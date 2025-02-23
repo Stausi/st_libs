@@ -124,3 +124,5 @@ AddEventHandler('onResourceStop', function(resourceName)
         print(('%d actions removed before stop %s in %s'):format(removed, resourceName, GetCurrentResourceName()))
     end
 end)
+
+return st.hook
