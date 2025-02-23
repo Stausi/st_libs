@@ -1,17 +1,26 @@
-st.notify = {}
+---@alias NotificationPosition 'top' | 'top-right' | 'top-left' | 'bottom' | 'bottom-right' | 'bottom-left' | 'center-right' | 'center-left'
+---@alias NotificationType 'info' | 'warning' | 'success' | 'error'
+---@alias IconAnimationType 'spin' | 'spinPulse' | 'spinReverse' | 'pulse' | 'beat' | 'fade' | 'beatFade' | 'bounce' | 'shake'
 
-st.notify.ShowNativeNotification = function(source, msg)
-    TriggerClientEvent(GetCurrentResourceName() .. ":client:ShowNativeNotification", source, msg)
-end
+---@class NotifyProps
+---@field id? string
+---@field title? string
+---@field description? string
+---@field duration? number
+---@field showDuration? boolean
+---@field position? NotificationPosition
+---@field type? NotificationType
+---@field style? { [string]: any }
+---@field icon? string | { [1]: IconProp, [2]: string }
+---@field iconAnimation? IconAnimationType
+---@field iconColor? string
+---@field alignIcon? 'top' | 'center'
+---@field sound? { bank?: string, set: string, name: string }
 
-st.notify.ShowAdvancedNotification = function(source, title, subject, msg, icon, iconType)
-    TriggerClientEvent(GetCurrentResourceName() .. ":client:ShowAdvancedNotification", source, title, subject, msg, icon, iconType)
-end
-
-st.notify.ShowHelpNotification = function(source, msg)
-    TriggerClientEvent(GetCurrentResourceName() .. ":client:ShowHelpNotification", source, msg)
-end
-
-st.notify.ShowNotification = function(source, data)
-	TriggerClientEvent(GetCurrentResourceName() .. ":client:ShowNotification", source, data)
+---`server`
+---@param source number
+---@param data NotifyProps
+---@diagnostic disable-next-line: duplicate-set-field
+function st.s_notify(source, data)
+    TriggerClientEvent('st_libs:notify', source, data)
 end
