@@ -1,388 +1,270 @@
-if not _VERSION:find("5.4") then
-    error("^1Lua 5.4 must be enabled in the resource manifest!^0", 2)
+if not _VERSION:find('5.4') then
+    error('Lua 5.4 must be enabled in the resource manifest!', 2)
 end
 
 local resourceName = GetCurrentResourceName()
-local st_libs = "st_libs"
-local modules = { "table", "print", "file", "trigger-event" }
-local function noFunction() end
-local LoadResourceFile = LoadResourceFile
-local context = IsDuplicityVersion() and "server" or "client"
-local moduleInLoading = {}
-local moduleLocal = {}
-local globalModuleLoaded = {}
+local st_libs = 'st_libs'
 
-local alias = {
-    framework = "framework-bridge",
-    inventory = "inventory-bridge",
-    versionChecker = "version-checker",
-    triggerEvent = "trigger-event"
-}
-
-local interfaceModules = {
-    "notification",
-}
-
-local function getAlias(module)
-    if module == "meCoords" or module == "mePlayerId" or module == "meServerId" then 
-        return "me" 
-    end
-
-    if alias[module] then 
-        return module 
-    end
-
-    for alia, name in pairs(alias) do
-        if name == module then
-            return alia
-        end
-    end
-    
-    return module
-end
-
---list modules required
-for i = 1, GetNumResourceMetadata(resourceName, "st_lib") do
-    local module = getAlias(GetResourceMetadata(resourceName, "st_lib", i - 1))
-
-    if module == "interfaces" then
-        for _, ifaceModule in ipairs(interfaceModules) do
-            modules[#modules + 1] = ifaceModule
-        end
-    else
-        modules[#modules + 1] = module
-    end
+if resourceName == st_libs then 
+    return 
 end
 
 if st and st.name == st_libs then
-    error(("st_libs is already loaded.\n\tRemove any duplicate entries from '@%s/fxmanifest.lua'"):format(resourceName))
+    error(("Cannot load st_libs more than once.\n\tRemove any duplicate entries from '@%s/fxmanifest.lua'"):format(resourceName))
 end
 
-function GetHashFromString(value)
-    if type(value) == "string" then
-        local number = tonumber(value)
-        if number then return number end
-        return staat(value)
-    end
-    return value
+local export = exports[st_libs]
+if GetResourceState(st_libs) ~= 'started' then
+    error('^st_libs must be started before this resource.^0', 0)
 end
 
-function UnJson(value)
-    if not value then return {} end
-    if value == "null" then return {} end
-    if type(value) == "string" then
-        return json.decode(value)
-    end
-    return value
-end
+local status = export.hasLoaded()
 
-local function isModuleLoaded(name, needLocal)
-    if needLocal and not moduleLocal[name] then return false end
-    if moduleInLoading[name] then return true end
-    if rawget(st, name) then return true end
-    return false
-end
+if status ~= true then error(status, 2) end
 
-local function loadGlobalModule(module)
-    if resourceName == "st_libs" then return end
-    while GetResourceState("st_libs") ~= "started" do Wait(0) end
-    exports.st_libs:loadGlobalModule(module)
-end
+-- Ignore invalid types during msgpack.pack (e.g. userdata)
+msgpack.setoption('ignore_invalid', true)
 
-local function doesScopedFilesRequired(name)
-    if name == "table" then return true end
-    return resourceName ~= "st_libs" or table.find(modules, function(_name) return _name == name end)
-end
+-----------------------------------------------------------------------------------------------
+-- Module
+-----------------------------------------------------------------------------------------------
 
-local function loadModule(self, name, needLocal)
-    if needLocal == nil then 
-        needLocal = true 
+local LoadResourceFile = LoadResourceFile
+local context = IsDuplicityVersion() and 'server' or 'client'
+
+function noop() end
+
+local function loadModule(self, module)
+    local dir = ('modules/%s'):format(module)
+    local chunk = LoadResourceFile(st_libs, ('%s/%s.lua'):format(dir, context))
+    local shared = LoadResourceFile(st_libs, ('%s/shared.lua'):format(dir))
+
+    if shared then
+        chunk = (chunk and ('%s\n%s'):format(shared, chunk)) or shared
     end
 
-    local folder = alias[name] or name
-    local dir = ("modules/%s"):format(folder)
-    local file = ""
-
-    moduleInLoading[folder] = true
-    moduleInLoading[name] = true
-
-    if needLocal then
-        moduleLocal[folder] = true
-        moduleLocal[name] = true
-    end
-
-    loadGlobalModule(name)
-    self[name] = noFunction
-
-    for _, fileName in ipairs({ "shared", "context" }) do
-        fileName = fileName == "context" and context or fileName
-        local link = ("%s/%s.lua"):format(dir, fileName)
-        
-        if needLocal or doesScopedFilesRequired(name) then
-            local tempFile = LoadResourceFile("st_libs", link)
-            if tempFile then
-                file = file .. tempFile
-            end
-        end
-        
-        local globalLink = ("%s/%s.lua"):format(dir, "g_" .. fileName)
-        if resourceName == "st_libs" and not globalModuleLoaded[globalLink] then
-            globalModuleLoaded[globalLink] = true
-            local tempFile = LoadResourceFile("st_libs", globalLink)
-            if tempFile then
-                file = file .. tempFile
-            end
-        end
-    end
-
-    if file then
-        local fn, err = load(file, ("@@st_libs/%s/%s.lua"):format(dir, context))
+    if chunk then
+        local fn, err = load(chunk, ('@@st_libs/modules/%s/%s.lua'):format(module, context))
         if not fn or err then
-            return error(("\n^1Error importing module (%s): %s^0"):format(dir, err), 3)
+            return error(('\n^1Error importing module (%s): %s^0'):format(dir, err), 3)
         end
 
         local result = fn()
-        self[name] = result or self[name] or noFunction
+        self[module] = result or noop
+        return self[module]
     end
-
-    moduleInLoading[name] = nil
-    moduleInLoading[folder] = nil
-
-    return self[name]
 end
 
-local function call(self, name, ...)
-    if not name then 
-        return noFunction 
-    end
+-----------------------------------------------------------------------------------------------
+-- API
+-----------------------------------------------------------------------------------------------
 
-    if type(name) ~= "string" then 
-        return noFunction() 
-    end
-
-    name = getAlias(name)
-    local module = rawget(st, name)
+local function call(self, index, ...)
+    local module = rawget(self, index)
 
     if not module then
-        module = loadModule(self, name)
-    end
+        self[index] = noop
+        module = loadModule(self, index)
 
-    while moduleInLoading[name] do Wait(0) end
+        if not module then
+            local function method(...)
+                return export[index](nil, ...)
+            end
+
+            if not ... then
+                self[index] = method
+            end
+
+            return method
+        end
+    end
 
     return module
 end
 
 local st = setmetatable({
-    libLoaded = false,
-    debug = false,
     name = st_libs,
-    resourceName = resourceName,
     context = context,
-    cache = {}
 }, {
     __index = call,
-    __call = noFunction
+    __call = call,
 })
 
-cache = {
-    resource = st.name,
-    game = GetGameName(),
-}
+local intervals = {}
+--- Dream of a world where this PR gets accepted.
+---@param callback function | number
+---@param interval? number
+---@param ... any
+function SetInterval(callback, interval, ...)
+    interval = interval or 0
 
-function st.waitLibLoading()
-    while not st.libLoaded do
-        Wait(0)
+    if type(interval) ~= 'number' then
+        return error(('Interval must be a number. Received %s'):format(json.encode(interval --[[@as unknown]])))
     end
-end
 
-function st.hasLoaded()
-    return st.libLoaded
-end
+    local cbType = type(callback)
 
-function st.isModuleLoaded(name, needLocal)
-    local name = getAlias(name)
-    return isModuleLoaded(name, needLocal)
-end
+    if cbType == 'number' and intervals[callback] then
+        intervals[callback] = interval or 0
+        return
+    end
 
-local function onReady(cb)
-    st.waitLibLoading()
-    Wait(1000)
+    if cbType ~= 'function' then
+        return error(('Callback must be a function. Received %s'):format(cbType))
+    end
 
-    return cb and cb() or true
-end
+    local args, id = { ... }
 
-function st.ready(cb)
-    Citizen.CreateThreadNow(function() onReady(cb) end)
-end
-
-function st.stopped(cb)
-    AddEventHandler("onResourceStop", function(resource)
-        if resource ~= resourceName then return end
-        cb()
+    Citizen.CreateThreadNow(function(ref)
+        id = ref
+        intervals[id] = interval or 0
+        repeat
+            interval = intervals[id]
+            Wait(interval)
+            callback(table.unpack(args))
+        until interval < 0
+        intervals[id] = nil
     end)
+
+    return id
+end
+
+---@param id number
+function ClearInterval(id)
+    if type(id) ~= 'number' then
+        return error(('Interval id must be a number. Received %s'):format(json.encode(id --[[@as unknown]])))
+    end
+
+    if not intervals[id] then
+        return error(('No interval exists with id %s'):format(id))
+    end
+
+    intervals[id] = -1
+end
+
+---@generic T
+---@param key string
+---@param func fun(...: any): T
+---@param timeout? number
+---@return T
+function cache(key, func, timeout) end
+
+local cacheEvents = {}
+local cache = setmetatable({ game = GetGameName(), resource = resourceName }, {
+    __index = function(self, key)
+        cacheEvents[key] = {}
+
+        AddEventHandler(('st_libs:cache:%s'):format(key), function(value)
+            local oldValue = self[key]
+            local events = cacheEvents[key]
+
+            for i = 1, #events do
+                Citizen.CreateThreadNow(function()
+                    events[i](value, oldValue)
+                end)
+            end
+
+            self[key] = value
+        end)
+
+        return rawset(self, key, export.cache(nil, key) or false)[key]
+    end,
+
+    __call = function(self, key, func, timeout)
+        local value = rawget(self, key)
+
+        if value == nil then
+            value = func()
+
+            rawset(self, key, value)
+
+            if timeout then SetTimeout(timeout, function() self[key] = nil end) end
+        end
+
+        return value
+    end,
+})
+
+function st.onCache(key, cb)
+    if not cacheEvents[key] then
+        getmetatable(cache).__index(cache, key)
+    end
+
+    table.insert(cacheEvents[key], cb)
 end
 
 _ENV.st = st
+_ENV.cache = cache
+_ENV.require = st.require
 
-if GetResourceState(st_libs) ~= "started" and resourceName ~= "st_libs" then
-    error("^1st_libs must be started before this resource.^0", 0)
-end
+local notifyEvent = ('__st_notify_%s'):format(cache.resource)
 
-if resourceName == "st_libs" then
-    if not LoadResourceFile(st.name, 'web/build/index.html') then
-        local err = '^1Unable to load UI. Build st_libs or download the latest release.\n	^3https://github.com/Stausi/st_libs/releases/latest/download/st_libs.zip^0'
-        function st.hasLoaded() return err end
-        error(err)
-    end
-end
+if context == 'client' then
+    RegisterNetEvent(notifyEvent, function(data)
+        if locale then
+            if data.title then
+                data.title = locale(data.title) or data.title
+            end
 
--------------
--- DEFAULT MODULES
--------------
+            if data.description then
+                data.description = locale(data.description) or data.description
+            end
+        end
 
-function st.require(name, needLocal)
-    if needLocal == nil then 
-        needLocal = true 
-    end
-
-    name = getAlias(name)
-
-    if isModuleLoaded(name, needLocal) then 
-        return 
-    end
-
-    local module = loadModule(st, name, needLocal)
-    if type(module) == "function" then 
-        pcall(module) 
-    end
-end
-
-if resourceName == "st_libs" then
-    exports("loadGlobalModule", function(name)
-        st.require(name, false)
-        return true
-    end)
-    AddEventHandler("st_libs:loadGlobalModule", function(name, cb)
-        st.require(name, false)
-        cb()
-        return true
-    end)
-end
-
-st.require("print")
-
-if GetConvar(resourceName .. ":debug", "off") == "on" then
-    oprint(("/!\\ %s is in debug mode /!\\"):format(resourceName))
-    oprint("Don't use this in production!")
-    st.debug = true
-end
-
-AddConvarChangeListener(resourceName .. ":debug", function()
-    st.debug = GetConvar(resourceName .. ":debug", "off") == "on"
-
-    if st.debug then
-        oprint(("/!\\ %s is in debug mode /!\\"):format(resourceName))
-        oprint("Don't use this in production!")
-    else
-        oprint(("/!\\ %s debug mode turned OFF /!\\"):format(resourceName))
-    end
-end)
-
-
--------------
--- EXPORTS (prevent call before initializes)
--------------
-local function CreateExport(name, cb)
-    exports(name, function(...)
-        st.waitLibLoading()
-        return cb(...)
-    end)
-end
-
---Sort module by priority
-local priorityModules = { 
-    table = 1, 
-    print = 2,
-    file = 3, 
-    hook = 4, 
-    framework = 5,
-    inventory = 6,
-}
-
-table.sort(modules, function(a, b)
-    local prioA = priorityModules[a]
-    local prioB = priorityModules[b]
-    if prioA and prioB then
-        return prioA < prioB
-    end
-    if prioA then return true end
-    if prioB then return false end
-    return a < b
-end)
-
--- Todo: Rewrite locale system
--- Todo: Rewrite config system
-
-if context == "client" then
-    -------------
-    -- Locale initialization
-    -------------
-
-    local function loadLocaleFile(key)
-        local file = LoadResourceFile(cache.resource, ('locales/%s.json'):format(key)) or LoadResourceFile(cache.resource, 'locales/en.json')
-        return file and json.decode(file) or {}
-    end
-
-    function st.getLocaleKey() return 
-        "en"
-    end
-
-    function st.setLocale(key)
-        TriggerEvent('st_lib:setLocale', key)
-
-        SendNUIMessage({
-            action = 'setLocale',
-            data = loadLocaleFile(key)
-        })
-    end
-
-    RegisterNUICallback('init', function(_, cb)
-        cb(1)
-
-        SendNUIMessage({
-            action = 'setLocale',
-            data = loadLocaleFile("en")
-        })
+        return export:notify(data)
     end)
 
-    -------------
-    -- Nui initialization
-    -------------
+    cache.playerId = PlayerId()
+    cache.serverId = GetPlayerServerId(cache.playerId)
+else
+    ---`server`\
+    ---Trigger a notification on the target playerId from the server.\
+    ---If locales are loaded, the title and description will be formatted automatically.\
+    ---Note: No support for locale placeholders when using this function.
+    ---@param playerId number
+    ---@param data NotifyProps
+    ---@deprecated
+    ---@diagnostic disable-next-line: duplicate-set-field
+    function st.notify(playerId, data)
+        TriggerClientEvent(notifyEvent, playerId, data)
+    end
 
-    RegisterNUICallback('getConfig', function(_, cb)
-        cb({
-            primaryColor = GetConvar('st:primaryColor', 'blue'),
-            primaryShade = GetConvarInt('st:primaryShade', 8)
-        })
-    end)
-end
+    local poolNatives = {
+        CPed = GetAllPeds,
+        CObject = GetAllObjects,
+        CVehicle = GetAllVehicles,
+    }
 
--------------
--- LOAD REQUIRED MODULES
--------------
+    ---@param poolName 'CPed' | 'CObject' | 'CVehicle'
+    ---@return number[]
+    ---Server-side parity for the `GetGamePool` client native.
+    function GetGamePool(poolName)
+        local fn = poolNatives[poolName]
+        return fn and fn() --[[@as number[] ]]
+    end
 
-for _, name in ipairs(modules) do
-    st.require(name)
+    ---@return number[]
+    ---Server-side parity for the `GetPlayers` client native.
+    function GetActivePlayers()
+        local playerNum = GetNumPlayerIndices()
+        local players = table.create(playerNum, 0)
 
-    if name == "hook" then
-        CreateExport("registerAction", st.hook.registerAction)
-        CreateExport("RegisterAction", st.hook.RegisterAction)
-        CreateExport("registerFilter", st.hook.registerFilter)
-        CreateExport("RegisterFilter", st.hook.RegisterFilter)
-    elseif name == "versionChecker" and context == "server" then
-        CreateExport("GetScriptVersion", st.versionChecker.GetScriptVersion)
-        CreateExport("StopAddon", st.versionChecker.stopAddon)
+        for i = 1, playerNum do
+            players[i] = tonumber(GetPlayerFromIndex(i - 1))
+        end
+
+        return players
     end
 end
 
-st.libLoaded = true
+for i = 1, GetNumResourceMetadata(cache.resource, 'st_lib') do
+    local name = GetResourceMetadata(cache.resource, 'st_lib', i - 1)
+
+    if not rawget(st, name) then
+        local module = loadModule(st, name)
+
+        if type(module) == 'function' then 
+            pcall(module) 
+        end
+    end
+end

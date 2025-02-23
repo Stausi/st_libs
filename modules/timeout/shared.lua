@@ -1,8 +1,6 @@
 local delays = {}
 st.timeout = {}
 
-st.require("table")
-
 ---@class TimeoutClass : table Timeout class
 local TimeoutClass = {
     msec = 1000,
@@ -16,7 +14,7 @@ local TimeoutClass = {
 ---@param cb function
 ---@return TimeoutClass TimeoutClass class
 function TimeoutClass:set(msec, cb, args)
-    local t = table.copy(TimeoutClass)
+    local t = st.table.copy(TimeoutClass)
     t.msec = msec
     t.cb = cb
     t.id = math.random()

@@ -128,3 +128,5 @@ function st.callback.register(name, cb)
         TriggerServerEvent(cbEvent:format(resource), key, callbackResponse(pcall(cb, ...)))
     end)
 end
+
+return st.callback

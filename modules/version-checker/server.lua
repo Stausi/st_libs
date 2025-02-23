@@ -120,7 +120,7 @@ function st.versionChecker.checkUpdate()
 			local minVersion = data[2]
 
 			if GetResourceState(script) ~= "started" then
-				eprint(script .. " is missing !")
+				st.print.error(script .. " is missing !")
 			else
 				local currentVersion = exports[script]:GetScriptVersion()
 				if convertVersion(currentVersion) < convertVersion(minVersion) then
@@ -131,6 +131,4 @@ function st.versionChecker.checkUpdate()
 	end
 end
 
-st.ready(function()
-  	st.versionChecker.checkUpdate()
-end)
+st.versionChecker.checkUpdate()

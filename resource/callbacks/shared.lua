@@ -10,6 +10,9 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 end)
 
+---For internal use only.
+---Sets a callback event as registered to a specific resource, preventing it from
+---being overwritten. Any unknown callbacks will return an error to the caller.
 ---@param callbackName string
 ---@param isValid boolean
 function st.setValidCallback(callbackName, isValid)
@@ -35,10 +38,12 @@ function st.isCallbackValid(callbackName)
 end
 
 local cbEvent = '__st_cb_%s'
+
 RegisterNetEvent('st_libs:validateCallback', function(callbackName, invokingResource, key)
     if registeredCallbacks[callbackName] then return end
 
     local event = cbEvent:format(invokingResource)
+
     if cache.game == 'fxserver' then
         return TriggerClientEvent(event, source, key, 'cb_invalid')
     end

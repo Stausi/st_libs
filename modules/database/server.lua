@@ -9,7 +9,8 @@ function st.database.addTable(tableName, definition)
     if isExist then return false end
     
     MySQL.update.await("CREATE TABLE IF NOT EXISTS " .. tableName .. " (" .. definition .. ")")
-    gprint("Database table created: " .. tableName)
+    st.print.info("Database table created: " .. tableName)
+
     return true
 end
 
@@ -20,7 +21,8 @@ function st.database.addTrigger(triggerName, definition)
     if isExist then return false end
 
     MySQL.query.await("CREATE TRIGGER `" .. triggerName .. "` " .. definition)
-    gprint("Database trigger created: " .. triggerName)
+    st.print.info("Database trigger created: " .. triggerName)
+
     return true
 end
 
@@ -37,8 +39,10 @@ function st.database.addColumn(tableName, name, definition)
     local isExist = MySQL.single.await("SHOW COLUMNS FROM " .. tableName .. " LIKE ?", { name })
     if isExist then return false end
     
-    gprint("Database column " .. name .. " added to " .. tableName)
+    st.print.info("Database column " .. name .. " added to " .. tableName)
     MySQL.update.await("ALTER TABLE `" .. tableName .. "` ADD `" .. name .. "` " .. definition)
 
     return true
 end
+
+return st.database

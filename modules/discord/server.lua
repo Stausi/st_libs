@@ -37,3 +37,5 @@ st.discord.DiscordEmbed = function(webhook, name, title, description, codeblock)
     
     PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({username = user, embeds = embed}), {['Content-Type'] = 'application/json'})
 end
+
+return st.discord

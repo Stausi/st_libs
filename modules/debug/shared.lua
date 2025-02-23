@@ -41,3 +41,5 @@ st.debug.performanceStop = function(id)
 
     return elapsed
 end
+
+return st.debug

@@ -1,7 +1,3 @@
-if not table.merge then
-    st.require('table')
-end
-
 local mainResourceFramework = {
     ESX = { "es_extended" },
     QB = { "qb-core" },
@@ -19,7 +15,7 @@ local FrameworkClass = {
 
 ---@return FrameworkClass FrameworkClass class
 function FrameworkClass:new(t)
-    table.merge(self,t or {})
+    st.table.merge(self,t or {})
     self:init()
     return self
 end
@@ -67,7 +63,7 @@ function FrameworkClass:get()
             for _, resource in pairs(resources) do
                 if resource:sub(1, 1) ~= "!" then
                     while GetResourceState(resource) ~= "started" do
-                        bprint("Waiting start of " .. framework)
+                        st.print.info("Waiting start of " .. framework)
                         Wait(1000)
                     end
                 end

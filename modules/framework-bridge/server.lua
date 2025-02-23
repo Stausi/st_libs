@@ -1,6 +1,3 @@
-st.require("table")
-st.require("string")
-
 local mainResourceFramework = {
     ESX = { "es_extended" },
     QB = { "qb-core" },
@@ -19,7 +16,7 @@ local User = {
 
 ---@return User
 function User:get(source)
-    self = table.copy(User)
+    self = st.table.copy(User)
     self.source = tonumber(source)
     self:init()
     return self
@@ -177,22 +174,22 @@ local FrameworkClass = {
 
 ---@return FrameworkClass FrameworkClass class
 function FrameworkClass:new(t)
-    t = table.copy(FrameworkClass)
+    t = st.table.copy(FrameworkClass)
     t:init()
     return t
 end
 
 function FrameworkClass:init()
     if self:is("ESX") then
-        bprint("ESX detected")
+        st.print.info("ESX detected")
         self.object = exports["es_extended"]:getSharedObject()
         return
     elseif self:is("QB") then
-        bprint("QB-Core detected")
+        st.print.info("QB-Core detected")
         self.object = exports["qb-core"]:GetCoreObject()
         return
     end
-    eprint("No compatible Framework detected. Please contact Stausi on discord")
+    st.print.error("No compatible Framework detected. Please contact Stausi on discord")
 end
 
 ---@return string Name of the framework
@@ -220,7 +217,7 @@ function FrameworkClass:get()
             for _, resource in pairs(resources) do
                 if resource:sub(1, 1) ~= "!" then
                     while GetResourceState(resource) ~= "started" do
-                        bprint("Waiting start of " .. framework)
+                        st.print.info("Waiting start of " .. framework)
                         Wait(1000)
                     end
                 end
@@ -299,3 +296,5 @@ end
 -------------
 
 st.framework = FrameworkClass:new()
+
+return st.framework

@@ -35,6 +35,8 @@ function st.file.load(modname)
 
         pcall(fn)
     else
-        eprint("Impossible to load: " .. modname)
+        st.print.error("Impossible to load: " .. modname)
     end
 end
+
+return st.file

@@ -1,6 +1,111 @@
+-- Add additional functions to the standard table library
+
+---@class oxtable : tablelib
+st.table = table
+local pairs = pairs
+
+---@param tbl table
+---@param value any
+---@return boolean
+---Checks if tbl contains the given values. Only intended for simple values and unnested tables.
+local function contains(tbl, value)
+    if type(value) ~= 'table' then
+        for _, v in pairs(tbl) do
+            if v == value then
+                return true
+            end
+        end
+
+        return false
+    else
+        local set = {}
+
+        for _, v in pairs(tbl) do
+            set[v] = true
+        end
+
+        for _, v in pairs(value) do
+            if not set[v] then
+                return false
+            end
+        end
+
+        return true
+    end
+end
+
+---@param t1 any
+---@param t2 any
+---@return boolean
+---Compares if two values are equal, iterating over tables and matching both keys and values.
+local function table_matches(t1, t2)
+    local tabletype1 = table.type(t1)
+
+    if not tabletype1 then return t1 == t2 end
+
+    if tabletype1 ~= table.type(t2) or (tabletype1 == 'array' and #t1 ~= #t2) then
+        return false
+    end
+
+    for k, v1 in pairs(t1) do
+        local v2 = t2[k]
+        if v2 == nil or not table_matches(v1, v2) then
+            return false
+        end
+    end
+
+    for k in pairs(t2) do
+        if t1[k] == nil then
+            return false
+        end
+    end
+
+    return true
+end
+
+---@generic T
+---@param tbl T
+---@return T
+---Recursively clones a table to ensure no table references.
+local function table_deepclone(tbl)
+    tbl = table.clone(tbl)
+
+    for k, v in pairs(tbl) do
+        if type(v) == 'table' then
+            tbl[k] = table_deepclone(v)
+        end
+    end
+
+    return tbl
+end
+
+---@param t1 table
+---@param t2 table
+---@param addDuplicateNumbers boolean? add duplicate number keys together if true, replace if false. Defaults to true.
+---@return table
+---Merges two tables together. Defaults to adding duplicate keys together if they are numbers, otherwise they are overriden.
+local function table_merge(t1, t2, addDuplicateNumbers)
+    addDuplicateNumbers = addDuplicateNumbers == nil or addDuplicateNumbers
+    for k, v2 in pairs(t2) do
+        local v1 = t1[k]
+        local type1 = type(v1)
+        local type2 = type(v2)
+
+        if type1 == 'table' and type2 == 'table' then
+            table_merge(v1, v2, addDuplicateNumbers)
+        elseif addDuplicateNumbers and (type1 == 'number' and type2 == 'number') then
+            t1[k] = v1 + v2
+        else
+            t1[k] = v2
+        end
+    end
+
+    return t1
+end
+
 ---@param orig  table Table to copy
 ---@return table
-table.copy = function(orig)
+local function table_copy(orig)
     local orig_type = type(orig)
     local copy
     if orig_type == "table" then
@@ -14,161 +119,19 @@ table.copy = function(orig)
     end
     return copy
 end
-  
----@param  t1 table
----@param t2 table
----@return table
-table.merge = function(t1, t2)
-    t1 = t1 or {}
-    if not t2 then return t1 end
-    for k, v in pairs(t2 or {}) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                table.merge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
-  
-table.mergeAfter = function(t1, t2)
-    t1 = t1 or {}
-    if not t2 then return t1 end
-    for _, v in pairs(t2 or {}) do
-        t1[#t1 + 1] = v
-    end
-    return t1
-end
-  
----@param _table table
----@return boolean
-table.isEmpty = function(_table)
-    for _ in pairs(_table or {}) do
-        return false
-    end
-    return true
-end
-  
+
 ---@param _table table
 ---@return integer
-table.count = function(_table)
+function table_count(_table)
     local counter = 0
     for _ in pairs(_table or {}) do
         counter += 1
     end
     return counter
 end
-  
----@param t table the table to filter
----@param filterIter function the function to filter the table
----@param keepKeyAssociation boolean keep the table keys (default false)
----@return table out the filtered table
-table.filter = function(t, filterIter, keepKeyAssociation)
-    local out = {}
-    if keepKeyAssociation == nil then keepKeyAssociation = false end
-    for k, v in pairs(t) do
-        if filterIter(v, k, t) then
-            if keepKeyAssociation or type(k) ~= "number" then
-                out[k] = v
-            else
-                out[#out + 1] = v
-            end
-        end
-    end
-    return out
-end
-  
----@param t table the table to map
----@param func function the function to map the table
----@return table new_table the mapped table
-table.map = function(t, func)
-    local new_table = {}
-    for i, v in pairs(t or {}) do
-        new_table[i] = func(v, i, t)
-    end
-    return table.copy(new_table)
-end
-  
----@param t table the table to search in
----@param func function the function to test the value
----@return any value the found table
----@return any value the key of the value
-table.find = function(t, func)
-    for i, v in pairs(t or {}) do
-        if func(v, i, t) then
-        return v, i
-        end
-    end
-    return false
-end
-  
----@param t table the table to clean
----@return table new_table the table without functions
-table.clearForNui = function(t)
-    local new_table = {}
-    for key, data in pairs(t) do
-        if type(data) == "function" then
-        elseif type(data) == "table" then
-        new_table[key] = table.clearForNui(data)
-        else
-        new_table[key] = data
-        end
-    end
-    return new_table
-end
-  
-  
----@param table1 table first table to compare
----@param table2 table second table to compare
----@param strict? boolean  if all keys should be in both table (default: true)
----@param canMissInTable1? any if table2 keys can miss in table1 (default: false)
----@param canMissInTable2? any if table1 keys can miss in table2 (default: false)
-table.isEgal = function(table1, table2, strict, canMissInTable1, canMissInTable2)
-    strict = strict ~= false
-    canMissInTable1 = canMissInTable1 or false
-    canMissInTable2 = canMissInTable2 or false
 
-    if type(table1) ~= "table" or type(table2) ~= "table" then
-        return table1 == table2
-    end
-
-    for key, value in pairs(table1) do
-        if not canMissInTable2 or table2[key] ~= nil then
-            if not table.isEgal(value, table2[key], strict, canMissInTable1, canMissInTable2) then
-                return false
-            end
-        end
-    end
-
-    if strict then
-        for key, value in pairs(table2) do
-            if not canMissInTable1 or table1[key] ~= nil then
-                if not table.isEgal(value, table1[key], strict, canMissInTable1, canMissInTable2) then
-                    return false
-                end
-            end
-        end
-    end
-
-    return true
-end
-  
----@param t table the table to get the value
----@param key any the key to get the value
----@return any value the value of the key
-table.extract = function(t, key)
-    local value = type(t[key]) == "table" and table.copy(t[key]) or t[key]
-    t[key] = nil
-    return value
-end
-
----@param t table the table to get the value
 ---@return void but prints the table
-table.print_r = function(t)
+local function print_r(t)
     local print_r_cache = {}
     local function sub_print_r(t, indent)
         if (print_r_cache[tostring(t)]) then
@@ -194,4 +157,55 @@ table.print_r = function(t)
     sub_print_r(t, "  ")
 end
 
-st.table = {}
+table.contains = contains
+table.matches = table_matches
+table.deepclone = table_deepclone
+table.merge = table_merge
+table.copy = table_copy
+table.count = table_count
+table.print_r = print_r
+
+local frozenNewIndex = function(self) error(('cannot set values on a frozen table (%s)'):format(self), 2) end
+local _rawset = rawset
+
+---@param tbl table
+---@param index any
+---@param value any
+---@return table
+function rawset(tbl, index, value)
+    if table.isfrozen(tbl) then
+        frozenNewIndex(tbl)
+    end
+
+    return _rawset(tbl, index, value)
+end
+
+---Makes a table read-only, preventing further modification. Unfrozen tables stored within `tbl` are still mutable.
+---@generic T : table
+---@param tbl T
+---@return T
+function table.freeze(tbl)
+    local copy = table.clone(tbl)
+    local metatbl = getmetatable(tbl)
+
+    table.wipe(tbl)
+    setmetatable(tbl, {
+        __index = metatbl and setmetatable(copy, metatbl) or copy,
+        __metatable = 'readonly',
+        __newindex = frozenNewIndex,
+        __len = function() return #copy end,
+        ---@diagnostic disable-next-line: redundant-return-value
+        __pairs = function() return next, copy end,
+    })
+
+    return tbl
+end
+
+---Return true if `tbl` is set as read-only.
+---@param tbl table
+---@return boolean
+function table.isfrozen(tbl)
+    return getmetatable(tbl) == 'readonly'
+end
+
+return st.table

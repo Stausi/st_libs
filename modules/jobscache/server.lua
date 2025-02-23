@@ -5,7 +5,7 @@ local JobsCache = {
 }
 
 function JobsCache:new(t)
-    t = table.copy(JobsCache)
+    t = st.table.copy(JobsCache)
     return t
 end
 
@@ -60,3 +60,5 @@ if st.framework:is("ESX") then
 elseif st.framework:is("QB") then
     -- Todo: Implement QB Framework
 end
+
+return st.jobscache

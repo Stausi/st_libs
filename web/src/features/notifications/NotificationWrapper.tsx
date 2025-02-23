@@ -93,7 +93,6 @@ const Notifications: React.FC = () => {
 
     if (toastId) setToastKey(prevKey => prevKey + 1);
 
-    // Backwards compat with old notifications
     switch (position) {
       case 'top':
         position = 'top-center';

@@ -1,6 +1,3 @@
-st.require("table")
-st.require("string")
-
 local mainResourceInventory = {
     OX = { "ox_inventory" },
 }
@@ -19,18 +16,18 @@ local InventoryClass = {
 
 ---@return InventoryClass InventoryClass class
 function InventoryClass:new(t)
-    t = table.copy(InventoryClass)
+    t = st.table.copy(InventoryClass)
     t:init()
     return t
 end
 
 function InventoryClass:init()
     if self:is("OX") then
-        bprint("OX Inventory detected")
+        st.print.info("OX Inventory detected")
         self.object = exports["ox_inventory"]
         return
     end
-    eprint("No compatible Inventory detected. Please contact Stausi on discord")
+    st.print.error("No compatible Inventory detected. Please contact Stausi on discord")
 end
 
 ---@return string Name of the inventory
@@ -58,7 +55,7 @@ function InventoryClass:get()
             for _, resource in pairs(resources) do
                 if resource:sub(1, 1) ~= "!" then
                     while GetResourceState(resource) ~= "started" do
-                        bprint("Waiting start of " .. inventory)
+                        st.print.info("Waiting start of " .. inventory)
                         Wait(1000)
                     end
                 end

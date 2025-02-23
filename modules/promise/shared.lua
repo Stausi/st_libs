@@ -24,3 +24,5 @@ function st.promise.new(cb, ...)
 
     return table.unpack(Citizen.Await(waiter))
 end
+
+return st.promise

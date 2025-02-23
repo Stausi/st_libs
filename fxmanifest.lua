@@ -18,15 +18,15 @@ files {
 }
 
 shared_scripts {
-	"init.lua"
+	'resource/init.lua',
+    'resource/**/shared.lua',
 }
 
 client_scripts {
-    'modules/interaction/client.lua',
+    'resource/**/client.lua',
 }
 
-st_libs {
-	"framework-bridge",
-	"inventory-bridge",
-	"version-checker"
+server_scripts {
+    'modules/version-checker/server.lua',
+    'resource/**/server.lua',
 }

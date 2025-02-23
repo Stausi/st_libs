@@ -1,9 +1,5 @@
 st.hook = {}
 
-if not table.filter then
-    st.require('table')
-end
-
 -------------
 -- Actions
 -------------

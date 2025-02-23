@@ -1,60 +1,58 @@
----@param str stringlib
----@return string str String with first letter in uppercase
-function string:firstToUpper()
-    if not self then return "" end
-    return (self:gsub("^%l", string.upper))
-end
-  
-function string:split(inSplitPattern, outResults)
-    if not outResults then
-        outResults = {}
-    end
-    if not self then 
-        return {} 
-    end
+---@class ststring : stringlib
+lib.string = string
 
-    local theStart = 1
-    local theSplitStart, theSplitEnd = self:find(inSplitPattern, theStart)
-    while theSplitStart do
-        table.insert(outResults, self:sub(theStart, theSplitStart - 1))
-        theStart = theSplitEnd + 1
-        theSplitStart, theSplitEnd = self:find(inSplitPattern, theStart)
-    end
+local string_char = string.char
+local math_random = math.random
 
-    table.insert(outResults, self:sub(theStart))
+local function getLetter() return string_char(math_random(65, 90)) end
+local function getLowerLetter() return string_char(math_random(97, 122)) end
+local function getInt() return math_random(0, 9) end
+local function getAlphanumeric() return math_random(0, 1) == 1 and getLetter() or getInt() end
 
-    return outResults
-end
-  
-function string:convertVersion()
-    if not self then 
-        return 1 
-    end
+local formatChar = {
+    ['1'] = getInt,
+    ['A'] = getLetter,
+    ['a'] = getLowerLetter,
+    ['.'] = getAlphanumeric,
+}
 
-    local converted = 0
-    if type(self) == "string" then
-        local array = self:split("%.")
-        local multiplicator = 1
-        for i = #array, 1, -1 do
-            converted = converted + multiplicator * array[i]
-            multiplicator = multiplicator * 1000
+---Creates a random string based on a given pattern.
+---`1` will output a random number from 0-9.
+---`A` will output a random letter from A-Z.
+---`a` will output a random letter from a-z.
+---`.` will output a random letter or number.
+---`^` will output the following character literally.
+---Any other character will output said character.
+---@param pattern string
+---@param length? integer Sets the length of the returned string, either padding it or omitting characters.
+---@return string
+function string.random(pattern, length)
+    local len = length or #pattern:gsub('%^', '')
+    local arr = table.create(len, 0)
+    local size = 0
+    local i = 0
+
+    while size < len do
+        i += 1
+        ---@type string | integer
+        local char = pattern:sub(i, i)
+
+        if char == '' then
+            arr[size + 1] = string.rep(' ', len - size)
+            break
+        elseif char == '^' then
+            i += 1
+            char = pattern:sub(i, i)
+        else
+            local fn = formatChar[char]
+            char = fn and fn() or char
         end
+
+        size += 1
+        arr[size] = char
     end
-    return converted
+
+    return table.concat(arr)
 end
 
-function string:trim()
-    if not self then return "" end
-    return self:match("^%s*(.-)%s*$")
-end
-
-function string:toHex()
-    local number = tonumber(self:sub(3), 16) -- Convertit la chaîne hexadécimale en nombre
-    if not number then return self end
-    if number >= 0x80000000 then
-        number = number - 0x100000000 -- Ajuster pour une valeur signée
-    end
-    return number
-end
-
-st.string = {}
+return lib.string

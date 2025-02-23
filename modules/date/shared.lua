@@ -65,3 +65,5 @@ function st.date.convertMsToInterval(ms, lang)
 
     return string
 end
+
+return st.date

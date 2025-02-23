@@ -1,5 +1,5 @@
 local interaction = {}
-st.require("table")
+local table = require "modules/table/shared"
 
 local Textures = {
     pin = 'pin',
@@ -738,7 +738,7 @@ local function Display3DTextUI(options)
     local hasInteractionBox = false
     local width, keyWidth = getOptionsWidth(options)
 
-    local optionsSize = table.count(options)
+    local optionsSize = st.table.count(options)
     local firstOptionKey, firstOption = next(options)
 
     local onScreen, _x, _y = World3dToScreen2d(firstOption.coords.x, firstOption.coords.y, firstOption.coords.z)
