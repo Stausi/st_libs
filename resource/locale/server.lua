@@ -1,0 +1,1 @@
+function st.getLocaleKey() return GetConvar('st:locale', 'en') end

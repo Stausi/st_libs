@@ -1,5 +1,5 @@
 ---@class ststring : stringlib
-lib.string = string
+st.string = string
 
 local string_char = string.char
 local math_random = math.random
@@ -55,4 +55,4 @@ function string.random(pattern, length)
     return table.concat(arr)
 end
 
-return lib.string
+return st.string

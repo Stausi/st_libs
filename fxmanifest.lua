@@ -14,7 +14,8 @@ files {
 	"modules/**.lua",
 	'web/build/index.html',
     'web/build/**/*',
-	'assets/*.png'
+	'assets/*.png',
+    'locales/*.json',
 }
 
 shared_scripts {
@@ -27,6 +28,7 @@ client_scripts {
 }
 
 server_scripts {
+    'modules/filesInDirectory/server.lua',
     'modules/version-checker/server.lua',
     'resource/**/server.lua',
 }
