@@ -173,3 +173,5 @@ if st.framework:is("QB") then
         end)
     end)
 end
+
+return st.framework

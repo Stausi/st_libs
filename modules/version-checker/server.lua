@@ -132,3 +132,5 @@ function st.versionChecker.checkUpdate()
 end
 
 st.versionChecker.checkUpdate()
+
+return st.versionChecker

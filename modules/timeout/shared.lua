@@ -91,3 +91,5 @@ function st.timeout.delay(id, msec, cb, ...)
     delays[id] = st.timeout.set(msec, cb, ...)
     return delays[id]
 end
+
+return st.timeout

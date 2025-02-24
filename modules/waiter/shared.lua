@@ -33,3 +33,5 @@ function st.waiter.exec(condition, executable, loopSpeed, maxDuration)
 
     return true
 end
+
+return st.waiter

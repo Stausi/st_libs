@@ -168,3 +168,5 @@ function InventoryClass:CanCarryItem(inv, item, count, metadata)
 end
 
 st.inventory = InventoryClass:new()
+
+return st.inventory
