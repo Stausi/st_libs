@@ -1,6 +1,3 @@
-local interaction = {}
-local table = require "modules/table/shared"
-
 local Textures = {
     pin = 'pin',
     interact = 'interact',
@@ -226,7 +223,7 @@ local function validate3DData(data, textType)
     return data
 end
 
-local create3DTextUIOnPlayer = function(id, options)
+st.create3DTextUIOnPlayer = function(id, options)
     createdTextUis.players[id] = createdTextUis.players[id] or {}
 
     for _, data in pairs(options) do
@@ -236,9 +233,8 @@ local create3DTextUIOnPlayer = function(id, options)
         createdTextUis.players[id][data.id] = returnData
     end
 end
-exports('create3DTextUIOnPlayer', create3DTextUIOnPlayer)
 
-local update3DTextUIOnPlayer = function(id, optionId, data)
+st.update3DTextUIOnPlayer = function(id, optionId, data)
     if not createdTextUis.players[id] then
         assert(false, "Player Interaction with id " .. id .. " does not exist")
         return
@@ -254,9 +250,8 @@ local update3DTextUIOnPlayer = function(id, optionId, data)
 
     createdTextUis.players[id][optionId] = returnData
 end
-exports('update3DTextUIOnPlayer', update3DTextUIOnPlayer)
 
-local remove3DTextUIFromPlayer = function(id)
+st.remove3DTextUIFromPlayer = function(id)
     if not createdTextUis.players[id] then
         assert(false, "Player Interaction with id " .. id .. " does not exist")
         return
@@ -264,9 +259,8 @@ local remove3DTextUIFromPlayer = function(id)
 
     createdTextUis.players[id] = nil
 end
-exports('remove3DTextUIFromPlayer', remove3DTextUIFromPlayer)
 
-local remove3DTextUIFromPlayerOption = function(id, optionId)
+st.remove3DTextUIFromPlayerOption = function(id, optionId)
     if not createdTextUis.players[id] then
         assert(false, "Player Interaction with id " .. id .. " does not exist")
         return
@@ -279,9 +273,8 @@ local remove3DTextUIFromPlayerOption = function(id, optionId)
 
     createdTextUis.players[id][optionId] = nil
 end
-exports('remove3DTextUIFromPlayerOption', remove3DTextUIFromPlayerOption)
 
-local create3DTextUIOnCoords = function(id, options)
+st.create3DTextUIOnCoords = function(id, options)
     createdTextUis.coords[id] = createdTextUis.coords[id] or {}
 
     for _, data in pairs(options) do
@@ -291,9 +284,8 @@ local create3DTextUIOnCoords = function(id, options)
         createdTextUis.coords[id][data.id] = returnData
     end
 end
-exports('create3DTextUIOnCoords', create3DTextUIOnCoords)
 
-local update3DTextUIOnCoords = function(id, optionId, data)
+st.update3DTextUIOnCoords = function(id, optionId, data)
     if not createdTextUis.coords[id] then
         assert(false, "Coords Interaction with id " .. id .. " does not exist")
         return
@@ -309,9 +301,8 @@ local update3DTextUIOnCoords = function(id, optionId, data)
 
     createdTextUis.coords[id][optionId] = returnData
 end
-exports('update3DTextUIOnCoords', update3DTextUIOnCoords)
 
-local remove3DTextUIFromCoords = function(id)
+st.remove3DTextUIFromCoords = function(id)
     if not createdTextUis.coords[id] then
         assert(false, "Coords Interaction with id " .. id .. " does not exist")
         return
@@ -319,9 +310,8 @@ local remove3DTextUIFromCoords = function(id)
 
     createdTextUis.coords[id] = nil
 end
-exports('remove3DTextUIFromCoords', remove3DTextUIFromCoords)
 
-local remove3DTextUIFromCoordsOption = function(id, optionId)
+st.remove3DTextUIFromCoordsOption = function(id, optionId)
     if not createdTextUis.coords[id] then
         assert(false, "Coords Interaction with id " .. id .. " does not exist")
         return
@@ -334,9 +324,8 @@ local remove3DTextUIFromCoordsOption = function(id, optionId)
 
     createdTextUis.coords[id][optionId] = nil
 end
-exports('remove3DTextUIFromCoordsOption', remove3DTextUIFromCoordsOption)
 
-local create3DTextUIOnEntity = function(id, options)
+st.create3DTextUIOnEntity = function(id, options)
     createdTextUis.entities[id] = createdTextUis.entities[id] or {}
 
     for _, data in pairs(options) do
@@ -346,9 +335,8 @@ local create3DTextUIOnEntity = function(id, options)
         createdTextUis.entities[id][data.id] = returnData
     end
 end
-exports('create3DTextUIOnEntity', create3DTextUIOnEntity)
 
-local update3DTextUIOnEntity = function(id, optionId, data)
+st.update3DTextUIOnEntity = function(id, optionId, data)
     if not createdTextUis.entities[id] then
         assert(false, "Entity Interaction with id " .. id .. " does not exist")
         return
@@ -364,9 +352,8 @@ local update3DTextUIOnEntity = function(id, optionId, data)
 
     createdTextUis.entities[id][optionId] = returnData
 end
-exports('update3DTextUIOnEntity', update3DTextUIOnEntity)
 
-local remove3DTextUIFromEntity = function(id)
+st.remove3DTextUIFromEntity = function(id)
     if not createdTextUis.entities[id] then
         assert(false, "Entity Interaction with id " .. id .. " does not exist")
         return
@@ -374,9 +361,8 @@ local remove3DTextUIFromEntity = function(id)
 
     createdTextUis.entities[id] = nil
 end
-exports('remove3DTextUIFromEntity', remove3DTextUIFromEntity)
 
-local remove3DTextUIFromEntityOption = function(id, optionId)
+st.remove3DTextUIFromEntityOption = function(id, optionId)
     if not createdTextUis.entities[id] then
         assert(false, "Entity Interaction with id " .. id .. " does not exist")
         return
@@ -389,9 +375,8 @@ local remove3DTextUIFromEntityOption = function(id, optionId)
 
     createdTextUis.entities[id][optionId] = nil
 end
-exports('remove3DTextUIFromEntityOption', remove3DTextUIFromEntityOption)
 
-local create3DTextUIOnModel = function(id, options)
+st.create3DTextUIOnModel = function(id, options)
     createdTextUis.models[id] = createdTextUis.models[id] or {}
 
     for _, data in pairs(options) do
@@ -410,9 +395,8 @@ local create3DTextUIOnModel = function(id, options)
         cachedModels[returnData.model].ids[data.id] = true
     end
 end
-exports('create3DTextUIOnModel', create3DTextUIOnModel)
 
-local update3DTextUIOnModel = function(id, optionId, data)
+st.update3DTextUIOnModel = function(id, optionId, data)
     if not createdTextUis.models[id] then
         assert(false, "Model Interaction with id " .. id .. " does not exist")
         return
@@ -428,9 +412,8 @@ local update3DTextUIOnModel = function(id, optionId, data)
 
     createdTextUis.models[id][optionId] = returnData
 end
-exports('update3DTextUIOnModel', update3DTextUIOnModel)
 
-local remove3DTextUIFromModel = function(id)
+st.remove3DTextUIFromModel = function(id)
     if not createdTextUis.models[id] then
         assert(false, "Model Interaction with id " .. id .. " does not exist")
         return
@@ -450,9 +433,8 @@ local remove3DTextUIFromModel = function(id)
 
     createdTextUis.models[id] = nil
 end
-exports('remove3DTextUIFromModel', remove3DTextUIFromModel)
 
-local remove3DTextUIFromModelOption = function(id, optionId)
+st.remove3DTextUIFromModelOption = function(id, optionId)
     if not createdTextUis.models[id] then
         assert(false, "Model Interaction with id " .. id .. " does not exist")
         return
@@ -477,7 +459,6 @@ local remove3DTextUIFromModelOption = function(id, optionId)
 
     createdTextUis.models[id][optionId] = nil
 end
-exports('remove3DTextUIFromModelOption', remove3DTextUIFromModelOption)
 
 local function getValidEntities(coords)
     local entities = {}
@@ -492,28 +473,29 @@ local function getValidEntities(coords)
 
                 local distance = #(coords - newCoords)
                 if distance < data.displayDist then
-                    local isInteractable = false
+                    if HasEntityClearLosToEntity(cache.ped, data.entity, 17) then
+                        local newData = {}
+                        for k, v in pairs(data) do
+                            newData[k] = v
+                        end
 
-                    if distance < data.interactDist then
-                        if data.canInteract then
-                            isInteractable = pcall(data.canInteract, data.entity)
-                        else
-                            isInteractable = true
+                        newData.isInInteractRange = distance < data.interactDist
+                        newData.isInteractable = true
+
+                        if data.canInteract ~= nil then
+                            local success, resp = pcall(data.canInteract, data.coords)
+                            newData.isInteractable = success and resp
+                        end
+
+                        newData.coords = newCoords
+
+                        if newData.isInteractable then
+                            local textUiId = string.format("%s_%s_entity_%d", id, optionId, data.entity)
+                            entities[textUiId] = entities[textUiId] or {}
+
+                            table.insert(entities[textUiId], newData)
                         end
                     end
-
-                    local newData = {}
-                    for k, v in pairs(data) do
-                        newData[k] = v
-                    end
-
-                    newData.coords = newCoords
-                    newData.isInteractable = isInteractable
-
-                    local textUiId = string.format("%s_%s_entity_%d", id, optionId, data.entity)
-                    entities[textUiId] = entities[textUiId] or {}
-
-                    table.insert(entities[textUiId], newData)
                 end
             else
                 createdTextUis.entities[data.id] = nil
@@ -534,27 +516,25 @@ local function getValidCoords(coords)
         for optionId, data in pairs(options) do
             local distance = #(coords - data.coords)
             if distance < data.displayDist then
-                local isInteractable = false
-
-                if distance < data.interactDist then
-                    if data.canInteract then
-                        isInteractable = pcall(data.canInteract, data.coords)
-                    else
-                        isInteractable = true
-                    end
-                end
-
                 local newData = {}
                 for k, v in pairs(data) do
                     newData[k] = v
                 end
 
-                newData.isInteractable = isInteractable
+                newData.isInInteractRange = distance < data.interactDist
+                newData.isInteractable = true
 
-                local textUiId = string.format("%s_%s_coords_%s", id, optionId, tostring(data.coords))
-                validCoords[textUiId] = validCoords[textUiId] or {}
+                if data.canInteract ~= nil then
+                    local success, resp = pcall(data.canInteract, data.coords)
+                    newData.isInteractable = success and resp
+                end
 
-                table.insert(validCoords[textUiId], newData)
+                if newData.isInteractable then
+                    local textUiId = string.format("%s_%s_coords_%s", id, optionId, tostring(data.coords))
+                    validCoords[textUiId] = validCoords[textUiId] or {}
+
+                    table.insert(validCoords[textUiId], newData)
+                end
             end
         end
 
@@ -576,28 +556,29 @@ local function getValidPlayers(coords)
 
                 local distance = #(coords - newCoords)
                 if distance < data.displayDist then
-                    local isInteractable = false
+                    if HasEntityClearLosToEntity(cache.ped, playerPed, 17) then
+                        local newData = {}
+                        for k, v in pairs(data) do
+                            newData[k] = v
+                        end
 
-                    if distance < data.interactDist then
-                        if data.canInteract then
-                            isInteractable = pcall(data.canInteract, data.playerPed)
-                        else
-                            isInteractable = true
+                        newData.isInInteractRange = distance < data.interactDist
+                        newData.isInteractable = true
+        
+                        if data.canInteract ~= nil then
+                            local success, resp = pcall(data.canInteract, data.coords)
+                            newData.isInteractable = success and resp
+                        end
+
+                        newData.coords = newCoords
+
+                        if newData.isInteractable then
+                            local textUiId = string.format("%s_%s_player_%d", id, optionId, data.player)
+                            players[textUiId] = players[textUiId] or {}
+
+                            table.insert(players[textUiId], newData)
                         end
                     end
-
-                    local newData = {}
-                    for k, v in pairs(data) do
-                        newData[k] = v
-                    end
-
-                    newData.coords = newCoords
-                    newData.isInteractable = isInteractable
-
-                    local textUiId = string.format("%s_%s_player_%d", id, optionId, data.player)
-                    players[textUiId] = players[textUiId] or {}
-
-                    table.insert(players[textUiId], newData)
                 end
             else
                 createdTextUis.players[data.id] = nil
@@ -624,29 +605,30 @@ local function getValidModels(coords)
 
                         local distance = #(coords - newCoords)
                         if distance < data.displayDist then
-                            local isInteractable = false
+                            if HasEntityClearLosToEntity(cache.ped, newEntity, 17) then
+                                local newData = {}
+                                for k, v in pairs(data) do
+                                    newData[k] = v
+                                end
 
-                            if distance < data.interactDist then
-                                if data.canInteract then
-                                    isInteractable = pcall(data.canInteract, entity)
-                                else
-                                    isInteractable = true
+                                newData.entity = newEntity
+                                newData.coords = newCoords
+
+                                newData.isInInteractRange = distance < data.interactDist
+                                newData.isInteractable = true
+                                
+                                if data.canInteract ~= nil then
+                                    local success, resp = pcall(data.canInteract, data.coords)
+                                    newData.isInteractable = success and resp
+                                end
+
+                                if newData.isInteractable then
+                                    local textUiId = string.format("%s_%s_model_%d", id, optionId, entity)
+                                    entities[textUiId] = entities[textUiId] or {}
+
+                                    table.insert(entities[textUiId], newData)
                                 end
                             end
-
-                            local newData = {}
-                            for k, v in pairs(data) do
-                                newData[k] = v
-                            end
-
-                            newData.entity = newEntity
-                            newData.coords = newCoords
-                            newData.isInteractable = isInteractable
-
-                            local textUiId = string.format("%s_%s_model_%d", id, optionId, entity)
-                            entities[textUiId] = entities[textUiId] or {}
-
-                            table.insert(entities[textUiId], newData)
                         end
                     else
                         cachedModels[data.model].entities[entity] = nil
@@ -741,11 +723,8 @@ local function Display3DTextUI(options)
     local optionsSize = st.table.count(options)
     local firstOptionKey, firstOption = next(options)
 
-    local onScreen, _x, _y = World3dToScreen2d(firstOption.coords.x, firstOption.coords.y, firstOption.coords.z)
-    if not onScreen then return end
-
     if optionsSize == 1 then
-        if firstOption.isInteractable then
+        if firstOption.isInInteractRange then
             drawOption(firstOption.coords, firstOption.text, firstOption.key, 'interactions_txd', "bg", "interact", 1, width, keyWidth, false)
             hasInteractionBox = true
 
@@ -758,16 +737,16 @@ local function Display3DTextUI(options)
     else
         local rowCount = 0
         for key, option in pairs(options) do
-            rowCount = rowCount + 1
+            if option.isInInteractRange then
+                rowCount = rowCount + 1
 
-            if option.isInteractable then
                 drawOption(option.coords, option.text, option.key, 'interactions_txd', "bg", "interact", rowCount, width, keyWidth, true)
                 hasInteractionBox = true
-            end
 
-            if option.onSelect and currentSelected == rowCount then
-                if IsControlJustReleased(0, option.keyNum) then
-                    pcall(option.onSelect, option)
+                if option.onSelect and currentSelected == rowCount then
+                    if IsControlJustReleased(0, option.keyNum) then
+                        pcall(option.onSelect, option)
+                    end
                 end
             end
         end
@@ -872,13 +851,11 @@ AddEventHandler('onResourceStop', function(resourceName)
         for optionId, data in pairs(options) do
             if data.resource == resourceName then
                 createdTextUis.players[id][optionId] = nil
-                print("Removed player interaction with id " .. id .. " and optionId " .. optionId)
             end
         end
 
         if not next(options) then
             createdTextUis.players[id] = nil
-            print("Removed player interaction with id " .. id)
         end
     end
 
@@ -886,13 +863,11 @@ AddEventHandler('onResourceStop', function(resourceName)
         for optionId, data in pairs(options) do
             if data.resource == resourceName then
                 createdTextUis.entities[id][optionId] = nil
-                print("Removed entity interaction with id " .. id .. " and optionId " .. optionId)
             end
         end
 
         if not next(options) then
             createdTextUis.entities[id] = nil
-            print("Removed entity interaction with id " .. id)
         end
     end
 
@@ -900,13 +875,11 @@ AddEventHandler('onResourceStop', function(resourceName)
         for optionId, data in pairs(options) do
             if data.resource == resourceName then
                 createdTextUis.coords[id][optionId] = nil
-                print("Removed coords interaction with id " .. id .. " and optionId " .. optionId)
             end
         end
 
         if not next(options) then
             createdTextUis.coords[id] = nil
-            print("Removed coords interaction with id " .. id)
         end
     end
 
@@ -914,13 +887,11 @@ AddEventHandler('onResourceStop', function(resourceName)
         for optionId, data in pairs(options) do
             if data.resource == resourceName then
                 createdTextUis.models[id][optionId] = nil
-                print("Removed model interaction with id " .. id .. " and optionId " .. optionId)
             end
         end
 
         if not next(options) then
             createdTextUis.models[id] = nil
-            print("Removed model interaction with id " .. id)
         end
     end
 end)
