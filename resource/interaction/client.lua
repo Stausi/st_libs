@@ -473,28 +473,30 @@ local function getValidEntities(coords)
 
                 local distance = #(coords - newCoords)
                 if distance < data.displayDist then
-                    if HasEntityClearLosToEntity(cache.ped, data.entity, 17) then
-                        local newData = {}
-                        for k, v in pairs(data) do
-                            newData[k] = v
-                        end
+                    local newData = {}
+                    for k, v in pairs(data) do
+                        newData[k] = v
+                    end
 
-                        newData.isInInteractRange = distance < data.interactDist
-                        newData.isInteractable = true
+                    newData.isInInteractRange = distance < data.interactDist
+                    newData.isInteractable = true
 
-                        if data.canInteract ~= nil then
-                            local success, resp = pcall(data.canInteract, data.coords)
-                            newData.isInteractable = success and resp
-                        end
+                    if data.canInteract ~= nil then
+                        local success, resp = pcall(data.canInteract, data.coords)
+                        newData.isInteractable = success and resp
+                    end
 
-                        newData.coords = newCoords
+                    newData.coords = newCoords
 
-                        if newData.isInteractable then
-                            local textUiId = string.format("%s_%s_entity_%d", id, optionId, data.entity)
-                            entities[textUiId] = entities[textUiId] or {}
+                    if data.entityOffset then
+                        newData.coords = GetOffsetFromEntityInWorldCoords(data.entity, data.entityOffset.x, data.entityOffset.y, data.entityOffset.z)
+                    end
 
-                            table.insert(entities[textUiId], newData)
-                        end
+                    if newData.isInteractable then
+                        local textUiId = string.format("%s_%s_entity_%d", id, optionId, data.entity)
+                        entities[textUiId] = entities[textUiId] or {}
+
+                        table.insert(entities[textUiId], newData)
                     end
                 end
             else
@@ -556,28 +558,30 @@ local function getValidPlayers(coords)
 
                 local distance = #(coords - newCoords)
                 if distance < data.displayDist then
-                    if HasEntityClearLosToEntity(cache.ped, playerPed, 17) then
-                        local newData = {}
-                        for k, v in pairs(data) do
-                            newData[k] = v
-                        end
+                    local newData = {}
+                    for k, v in pairs(data) do
+                        newData[k] = v
+                    end
 
-                        newData.isInInteractRange = distance < data.interactDist
-                        newData.isInteractable = true
-        
-                        if data.canInteract ~= nil then
-                            local success, resp = pcall(data.canInteract, data.coords)
-                            newData.isInteractable = success and resp
-                        end
+                    newData.isInInteractRange = distance < data.interactDist
+                    newData.isInteractable = true
+    
+                    if data.canInteract ~= nil then
+                        local success, resp = pcall(data.canInteract, data.coords)
+                        newData.isInteractable = success and resp
+                    end
 
-                        newData.coords = newCoords
+                    newData.coords = newCoords
 
-                        if newData.isInteractable then
-                            local textUiId = string.format("%s_%s_player_%d", id, optionId, data.player)
-                            players[textUiId] = players[textUiId] or {}
+                    if data.entityOffset then
+                        newData.coords = GetOffsetFromEntityInWorldCoords(playerPed, data.entityOffset.x, data.entityOffset.y, data.entityOffset.z)
+                    end
 
-                            table.insert(players[textUiId], newData)
-                        end
+                    if newData.isInteractable then
+                        local textUiId = string.format("%s_%s_player_%d", id, optionId, data.player)
+                        players[textUiId] = players[textUiId] or {}
+
+                        table.insert(players[textUiId], newData)
                     end
                 end
             else
@@ -605,29 +609,31 @@ local function getValidModels(coords)
 
                         local distance = #(coords - newCoords)
                         if distance < data.displayDist then
-                            if HasEntityClearLosToEntity(cache.ped, newEntity, 17) then
-                                local newData = {}
-                                for k, v in pairs(data) do
-                                    newData[k] = v
-                                end
+                            local newData = {}
+                            for k, v in pairs(data) do
+                                newData[k] = v
+                            end
 
-                                newData.entity = newEntity
-                                newData.coords = newCoords
+                            newData.entity = newEntity
+                            newData.coords = newCoords
 
-                                newData.isInInteractRange = distance < data.interactDist
-                                newData.isInteractable = true
-                                
-                                if data.canInteract ~= nil then
-                                    local success, resp = pcall(data.canInteract, data.coords)
-                                    newData.isInteractable = success and resp
-                                end
+                            if data.entityOffset then
+                                newData.coords = GetOffsetFromEntityInWorldCoords(newEntity, data.entityOffset.x, data.entityOffset.y, data.entityOffset.z)
+                            end
 
-                                if newData.isInteractable then
-                                    local textUiId = string.format("%s_%s_model_%d", id, optionId, entity)
-                                    entities[textUiId] = entities[textUiId] or {}
+                            newData.isInInteractRange = distance < data.interactDist
+                            newData.isInteractable = true
+                            
+                            if data.canInteract ~= nil then
+                                local success, resp = pcall(data.canInteract, data.coords)
+                                newData.isInteractable = success and resp
+                            end
 
-                                    table.insert(entities[textUiId], newData)
-                                end
+                            if newData.isInteractable then
+                                local textUiId = string.format("%s_%s_model_%d", id, optionId, entity)
+                                entities[textUiId] = entities[textUiId] or {}
+
+                                table.insert(entities[textUiId], newData)
                             end
                         end
                     else
