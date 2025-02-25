@@ -167,6 +167,11 @@ function InventoryClass:CanCarryItem(inv, item, count, metadata)
     return false
 end
 
+---@return boolean Whether an inventory is found or not
+function InventoryClass:HasInventory()
+    return self.name ~= ""
+end
+
 st.inventory = InventoryClass:new()
 
 return st.inventory
