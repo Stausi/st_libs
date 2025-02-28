@@ -103,55 +103,55 @@ end
 
 local function validate3DData(data, textType)
     if not data then
-        assert(false, "Data is required")
+        st.print.debug(false, "Data is required")
         return false
     end
 
     if not data.id then
-        assert(false, "Id is required")
+        st.print.debug(false, "Id is required")
         return false
     end
 
     if not data.text then
-        assert(false, "Text is required")
+        st.print.debug(false, "Text is required")
         return false
     end
 
     if not data.displayDist then
-        assert(false, "Display distance is required")
+        st.print.debug(false, "Display distance is required")
         return false
     end
 
     if not data.interactDist then
-        assert(false, "Interact distance is required")
+        st.print.debug(false, "Interact distance is required")
         return false
     end
 
     if not data.key then
-        assert(false, "Key is required")
+        st.print.debug(false, "Key is required")
         return false
     end
 
     if not data.keyNum then
-        assert(false, "Key number is required")
+        st.print.debug(false, "Key number is required")
         return false
     end
 
     if textType == "player" then
         if not data.player then
-            assert(false, "Player is required")
+            st.print.debug(false, "Player is required")
             return false
         end
     end
 
     if textType == "coords" then
         if not data.coords then
-            assert(false, "Coords is required")
+            st.print.debug(false, "Coords is required")
             return false
         end
 
         if type(data.coords) == "vector2" then
-            assert(false, "Coords must be a vector3 or vector4")
+            st.print.debug(false, "Coords must be a vector3 or vector4")
             return false
         end
 
@@ -162,7 +162,7 @@ local function validate3DData(data, textType)
 
     if textType == "entity" then
         if not data.entity then
-            assert(false, "Entity is required")
+            st.print.debug(false, "Entity is required")
             return false
         end
 
@@ -180,7 +180,7 @@ local function validate3DData(data, textType)
         end
 
         if not entityType then
-            assert(false, "Could not determine entity type")
+            st.print.debug(false, "Could not determine entity type")
             return false
         end
 
@@ -189,12 +189,12 @@ local function validate3DData(data, textType)
 
     if textType == "model" then
         if not data.model then
-            assert(false, "Model is required")
+            st.print.debug(false, "Model is required")
             return false
         end
 
         if not IsModelValid(data.model) then
-            assert(false, "Model is not valid")
+            st.print.debug(false, "Model is not valid")
             return false
         end
 
@@ -206,7 +206,7 @@ local function validate3DData(data, textType)
         end
 
         if not validCfxPools[modelPool] then
-            assert(false, "Model pool is not valid")
+            st.print.debug(false, "Model pool is not valid")
             return false
         end
 
@@ -235,13 +235,23 @@ st.create3DTextUIOnPlayer = function(id, options)
 end
 
 st.update3DTextUIOnPlayer = function(id, optionId, data)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+    
     if not createdTextUis.players[id] then
-        assert(false, "Player Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Player Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.players[id][optionId] then
-        assert(false, "Player Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Player Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -252,8 +262,13 @@ st.update3DTextUIOnPlayer = function(id, optionId, data)
 end
 
 st.remove3DTextUIFromPlayer = function(id)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
     if not createdTextUis.players[id] then
-        assert(false, "Player Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Player Interaction with id " .. id .. " does not exist")
         return
     end
 
@@ -261,13 +276,23 @@ st.remove3DTextUIFromPlayer = function(id)
 end
 
 st.remove3DTextUIFromPlayerOption = function(id, optionId)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.players[id] then
-        assert(false, "Player Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Player Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.players[id][optionId] then
-        assert(false, "Player Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Player Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -286,13 +311,23 @@ st.create3DTextUIOnCoords = function(id, options)
 end
 
 st.update3DTextUIOnCoords = function(id, optionId, data)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.coords[id] then
-        assert(false, "Coords Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Coords Interaction with id " .. id .. " does not exist")
         return
     end
     
     if not createdTextUis.coords[id][optionId] then
-        assert(false, "Coords Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Coords Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -303,8 +338,13 @@ st.update3DTextUIOnCoords = function(id, optionId, data)
 end
 
 st.remove3DTextUIFromCoords = function(id)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
     if not createdTextUis.coords[id] then
-        assert(false, "Coords Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Coords Interaction with id " .. id .. " does not exist")
         return
     end
 
@@ -312,13 +352,23 @@ st.remove3DTextUIFromCoords = function(id)
 end
 
 st.remove3DTextUIFromCoordsOption = function(id, optionId)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.coords[id] then
-        assert(false, "Coords Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Coords Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.coords[id][optionId] then
-        assert(false, "Coords Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Coords Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -337,13 +387,23 @@ st.create3DTextUIOnEntity = function(id, options)
 end
 
 st.update3DTextUIOnEntity = function(id, optionId, data)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.entities[id] then
-        assert(false, "Entity Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Entity Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.entities[id][optionId] then
-        assert(false, "Entity Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Entity Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -354,8 +414,13 @@ st.update3DTextUIOnEntity = function(id, optionId, data)
 end
 
 st.remove3DTextUIFromEntity = function(id)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
     if not createdTextUis.entities[id] then
-        assert(false, "Entity Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Entity Interaction with id " .. id .. " does not exist")
         return
     end
 
@@ -363,13 +428,23 @@ st.remove3DTextUIFromEntity = function(id)
 end
 
 st.remove3DTextUIFromEntityOption = function(id, optionId)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.entities[id] then
-        assert(false, "Entity Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Entity Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.entities[id][optionId] then
-        assert(false, "Entity Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Entity Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -397,13 +472,23 @@ st.create3DTextUIOnModel = function(id, options)
 end
 
 st.update3DTextUIOnModel = function(id, optionId, data)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.models[id] then
-        assert(false, "Model Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Model Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.models[id][optionId] then
-        assert(false, "Model Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Model Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -414,8 +499,13 @@ st.update3DTextUIOnModel = function(id, optionId, data)
 end
 
 st.remove3DTextUIFromModel = function(id)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
     if not createdTextUis.models[id] then
-        assert(false, "Model Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Model Interaction with id " .. id .. " does not exist")
         return
     end
 
@@ -435,13 +525,23 @@ st.remove3DTextUIFromModel = function(id)
 end
 
 st.remove3DTextUIFromModelOption = function(id, optionId)
+    if not id then
+        st.print.debug(false, "Id is required")
+        return
+    end
+
+    if not optionId then
+        st.print.debug(false, "OptionId is required")
+        return
+    end
+
     if not createdTextUis.models[id] then
-        assert(false, "Model Interaction with id " .. id .. " does not exist")
+        st.print.debug(false, "Model Interaction with id " .. id .. " does not exist")
         return
     end
 
     if not createdTextUis.models[id][optionId] then
-        assert(false, "Model Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
+        st.print.debug(false, "Model Interaction with id " .. id .. " and optionId " .. optionId .. " does not exist")
         return
     end
 
@@ -464,7 +564,7 @@ local function getValidEntities(coords)
     local entities = {}
     for id, options in pairs(createdTextUis.entities) do
         for optionId, data in pairs(options) do
-            if data.netId then
+            if data.netId and NetworkDoesNetworkIdExist(data.netId) then
                 data.entity = NetworkGetEntityFromNetworkId(data.netId)
             end
 
@@ -482,7 +582,7 @@ local function getValidEntities(coords)
                     newData.isInteractable = true
 
                     if data.canInteract ~= nil then
-                        local success, resp = pcall(data.canInteract, data.coords)
+                        local success, resp = pcall(data.canInteract, data.coords, data.entity)
                         newData.isInteractable = success and resp
                     end
 
@@ -625,7 +725,7 @@ local function getValidModels(coords)
                             newData.isInteractable = true
                             
                             if data.canInteract ~= nil then
-                                local success, resp = pcall(data.canInteract, data.coords)
+                                local success, resp = pcall(data.canInteract, newData.coords)
                                 newData.isInteractable = success and resp
                             end
 
