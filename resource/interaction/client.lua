@@ -19,6 +19,7 @@ local createdTextUis = {
     models = {},
 }
 
+local cachedOptions = {}
 local cachedModels = {}
 local validCfxPools = {
     ["CVehicle"] = true,
@@ -871,25 +872,45 @@ local function Display3DTextUI(options)
     end
 end
 
+local function groupNearbyOptions(allOptions, radius)
+    local groups = {}
+    for _, option in ipairs(allOptions) do
+        local foundGroup = nil
+        local optionCoords = option.coords
+        for _, group in ipairs(groups) do
+            local groupCenter = group[1].coords
+            local dist = #(optionCoords - groupCenter)
+            
+            if dist <= radius then
+                table.insert(group, option)
+                foundGroup = group
+                break
+            end
+        end
+        
+        if not foundGroup then
+            table.insert(groups, { option })
+        end
+    end
+
+    return groups
+end
+
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(0)
+        Citizen.Wait(100)
 
         local letSleep = true
         local playerCoords = GetEntityCoords(PlayerPedId())
-
+        
+        local allOptions = {}
         if next(createdTextUis.players) then
             local validPlayers = getValidPlayers(playerCoords)
             if next(validPlayers) then
-                letSleep = false
-
-                if not hasLoadedInteraction then
-                    hasLoadedInteraction = true
-                    currentSelected = 1
-                end
-
                 for _, options in pairs(validPlayers) do
-                    Display3DTextUI(options)
+                    for _, data in pairs(options) do
+                        table.insert(allOptions, data)
+                    end
                 end
             end
         end
@@ -897,15 +918,10 @@ Citizen.CreateThread(function()
         if next(createdTextUis.entities) then
             local validEntities = getValidEntities(playerCoords)
             if next(validEntities) then
-                letSleep = false
-
-                if not hasLoadedInteraction then
-                    hasLoadedInteraction = true
-                    currentSelected = 1
-                end
-
                 for _, options in pairs(validEntities) do
-                    Display3DTextUI(options)
+                    for _, data in pairs(options) do
+                        table.insert(allOptions, data)
+                    end
                 end
             end
         end
@@ -913,15 +929,10 @@ Citizen.CreateThread(function()
         if next(createdTextUis.coords) then
             local validCoords = getValidCoords(playerCoords)
             if next(validCoords) then
-                letSleep = false
-
-                if not hasLoadedInteraction then
-                    hasLoadedInteraction = true
-                    currentSelected = 1
-                end
-
                 for _, options in pairs(validCoords) do
-                    Display3DTextUI(options)
+                    for _, data in pairs(options) do
+                        table.insert(allOptions, data)
+                    end
                 end
             end
         end
@@ -929,17 +940,37 @@ Citizen.CreateThread(function()
         if next(createdTextUis.models) then
             local validModels = getValidModels(playerCoords)
             if next(validModels) then
-                letSleep = false
-
-                if not hasLoadedInteraction then
-                    hasLoadedInteraction = true
-                    currentSelected = 1
-                end
-
                 for _, options in pairs(validModels) do
-                    Display3DTextUI(options)
+                    for _, data in pairs(options) do
+                        table.insert(allOptions, data)
+                    end
                 end
             end
+        end
+
+        cachedOptions = allOptions
+    end
+end)
+
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+
+        local letSleep = true
+        if next(cachedOptions) then
+            if not hasLoadedInteraction then
+                hasLoadedInteraction = true
+                currentSelected = 1
+            end
+
+            local groups = groupNearbyOptions(cachedOptions, 1.0)
+            for _, group in ipairs(groups) do
+                Display3DTextUI(group)
+            end
+
+            letSleep = false
+        elseif hasLoadedInteraction then
+            hasLoadedInteraction = false
         end
 
         if letSleep then
