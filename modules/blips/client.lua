@@ -9,7 +9,6 @@ function BlipClass:new(t)
     local instance = t or {}
     setmetatable(instance, self)
     self.__index = self
-    instance.lastJob = st.framework:GetJobName()
     return instance
 end
 
@@ -132,6 +131,10 @@ if st.framework:is("ESX") then
             st.blips:WipeBlips()
         end
         st.blips.lastJob = job.name
+    end)
+
+    RegisterNetEvent("esx:playerLoaded", function(xPlayer)
+        st.blips.lastJob = xPlayer.job.name
     end)
 end
 

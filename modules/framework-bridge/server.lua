@@ -264,7 +264,7 @@ end
 ---@return table identifier
 function FrameworkClass:getUserIdentifier(source)
     local user = User:get(source)
-    return user:getIdentifier()
+    return user:getPlayerIdentifier()
 end
 
 ---@param source integer source ID

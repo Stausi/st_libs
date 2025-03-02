@@ -775,7 +775,8 @@ end
 
 local function drawOption(coords, text, key, spriteDict, spriteName, spriteKey, row, width, keyWidth, showDot, showPOI)
     if not showPOI then
-        SetScriptGfxAlignParams(0.0, row * 0.03 + 0.0, 0.0, 0.0)
+        local rowNumber = row - 1
+        SetScriptGfxAlignParams(0.0, rowNumber * 0.03 + 0.0, 0.0, 0.0)
         SetTextScale(0, 0.3)
         SetTextFont(2)
         SetTextColour(255, 255, 255, 255)
@@ -787,11 +788,11 @@ local function drawOption(coords, text, key, spriteDict, spriteName, spriteKey, 
         EndTextCommandDisplayText(0.0, -0.0115)
         ResetScriptGfxAlign()
 
-        SetScriptGfxAlignParams(0.0, row * 0.03 - 0.015, 0.0, 0.0)
+        SetScriptGfxAlignParams(0.0, rowNumber * 0.03 - 0.015, 0.0, 0.0)
         DrawSprite(spriteDict, spriteKey, 0.0, 0.014, keyWidth, 0.025, 0.0, 255, 255, 255, 255)
         ResetScriptGfxAlign()
 
-        SetScriptGfxAlignParams((showDot == true and 0.022 or 0.018) + (width / 2), row * 0.03 - 0.0125, 0.0, 0.0)
+        SetScriptGfxAlignParams((showDot == true and 0.022 or 0.018) + (width / 2), rowNumber * 0.03 - 0.0125, 0.0, 0.0)
         SetTextScale(0, 0.3)
         SetTextFont(4)
         SetTextColour(255, 255, 255, 255)
@@ -803,13 +804,13 @@ local function drawOption(coords, text, key, spriteDict, spriteName, spriteKey, 
         EndTextCommandDisplayText(0.0, 0.0)
         ResetScriptGfxAlign()
 
-        SetScriptGfxAlignParams((showDot == true and 0.022 or 0.018) + (width / 2), row * 0.03 - 0.015, 0.0, 0.0)
+        SetScriptGfxAlignParams((showDot == true and 0.022 or 0.018) + (width / 2), rowNumber * 0.03 - 0.015, 0.0, 0.0)
         DrawSprite(spriteDict, spriteName, 0.0, 0.014, width, 0.025, 0.0, 255, 255, 255, 255)
         ResetScriptGfxAlign()
 
         if showDot then
-            local newSpritename = currentSelected == row and Textures.circleSelected or Textures.circle
-            SetScriptGfxAlignParams(0.014, row * 0.03 - 0.015, 0.0, 0.0)
+            local newSpritename = currentSelected == rowNumber and Textures.circleSelected or Textures.circle
+            SetScriptGfxAlignParams(0.014, rowNumber * 0.03 - 0.015, 0.0, 0.0)
             DrawSprite(spriteDict, newSpritename, 0.0, 0.014, 0.01, 0.02, 0.0, 255, 255, 255, 255)
             ResetScriptGfxAlign()
         end

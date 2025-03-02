@@ -29,12 +29,6 @@ function FrameworkClass:init()
     elseif self.name == "QB" then
         self.object = exports["qb-core"]:GetCoreObject()
     end
-
-    if self.name == "" or table.isEmpty(self.object) then
-        return
-    end
-
-    self.player = self:getPlayer()
 end
 
 ---@return string Name of the frameworkt
