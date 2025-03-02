@@ -165,6 +165,13 @@ table.copy = table_copy
 table.count = table_count
 table.print_r = print_r
 
+table.isEmpty = function(_table)
+    for _ in pairs(_table or {}) do
+        return false
+    end
+    return true
+end
+
 local frozenNewIndex = function(self) error(('cannot set values on a frozen table (%s)'):format(self), 2) end
 local _rawset = rawset
 

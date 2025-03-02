@@ -1,19 +1,20 @@
 st.require("framework-bridge")
 
-local BlipClass = {
-    blips = {},
-    group_members = {},
-}
+local BlipClass = {}
+BlipClass.__index = BlipClass
 
 function BlipClass:new()
-    local obj = setmetatable({}, { __index = self })
+    local obj = setmetatable({
+        server_blips = {},
+        group_members = {}
+    }, BlipClass)
     return obj
 end
 
 local distanceTimeoutTimer = 10 * 1000
 
 local function uuid()
-    local template ='xxxxxxxx'
+    local template = 'xxxxxxxx'
     return string.gsub(template, '[xy]', function (c)
         local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
         return string.format('%x', v)
@@ -28,10 +29,10 @@ if st.framework:is("ESX") then
         end
 
         local identifier = st.framework:getUserIdentifier(_target)
-        for group, identifiers in pairs(BlipClass.group_members) do
+        for group, identifiers in pairs(st.blips.group_members) do
             for playerIdentifier in pairs(identifiers) do
                 if playerIdentifier == identifier then
-                    BlipClass.group_members[group][identifier] = nil
+                    st.blips.group_members[group][identifier] = nil
                 end
             end
         end
@@ -43,18 +44,18 @@ AddEventHandler('playerDropped', function()
     local _source = source
 
     local identifier = st.framework:getUserIdentifier(source)
-    for group, identifiers in pairs(BlipClass.group_members) do
+    for group, identifiers in pairs(st.blips.group_members) do
         for playerIdentifier in pairs(identifiers) do
             if playerIdentifier == identifier then
-                BlipClass.group_members[group][identifier] = nil
+                st.blips.group_members[group][identifier] = nil
             end
         end
     end
 
-    for key, blip in pairs(BlipClass.blips) do
+    for key, blip in pairs(st.blips.server_blips) do
         if not blip.groups and blip.user then
             if blip.user == _source then
-                BlipClass.blips[key] = nil
+                st.blips.server_blips[key] = nil
             end
         end
 
@@ -71,45 +72,37 @@ end)
 function BlipClass:registerMember(source, groups)
     local identifier = st.framework:getUserIdentifier(source)
     if type(groups) ~= "table" then
-        local newGroups = {}
-        table.insert(newGroups, groups)
-        groups = newGroups
+        groups = { groups }
     end
 
     for _, group in pairs(groups) do
-        if not BlipClass.group_members[group] then
-            BlipClass.group_members[group] = {}
+        if not self.group_members[group] then
+            self.group_members[group] = {}
         end
 
-        BlipClass.group_members[group][identifier] = source
+        self.group_members[group][identifier] = source
     end
 end
 
 function BlipClass:removeMember(source, groups)
     local identifier = st.framework:getUserIdentifier(source)
     if type(groups) ~= "table" then
-        local newGroups = {}
-        table.insert(newGroups, groups)
-        groups = newGroups
+        groups = { groups }
     end
 
     for _, group in pairs(groups) do
-        if BlipClass.group_members[group] then
-            BlipClass.group_members[group][identifier] = nil
+        if self.group_members[group] then
+            self.group_members[group][identifier] = nil
         end        
     end
 end
 
 function BlipClass:registerEntity(source, data)
-    if not data then 
+    if not data or not data.netID then 
         return 
     end
 
-    if not data.netID then 
-        return 
-    end
-
-    if BlipClass:IsEntityRegistered(data.netID) then
+    if self:IsEntityRegistered(data.netID) then
         return
     end
 
@@ -118,8 +111,8 @@ function BlipClass:registerEntity(source, data)
         userTarget = source
     end
 
-    local generatedKey = BlipClass:GenerateUUID()
-    BlipClass.blips[generatedKey] = {
+    local generatedKey = self:GenerateUUID()
+    self.server_blips[generatedKey] = {
         netID = data.netID,
         groups = data.groups,
         users = data.users,
@@ -143,16 +136,16 @@ function BlipClass:removeEntity(netID)
         return 
     end
 
-    local isRegistered, key = BlipClass:IsEntityRegistered(netID)
+    local isRegistered, key = self:IsEntityRegistered(netID)
     if not isRegistered then 
         return 
     end
 
-    BlipClass.blips[key] = nil
+    self.server_blips[key] = nil
 end
 
 function BlipClass:IsEntityRegistered(netID)
-    for blipKey, blip in pairs(BlipClass.blips) do
+    for blipKey, blip in pairs(self.server_blips) do
         if blip.netID == netID then
             return true, blipKey
         end
@@ -167,7 +160,7 @@ function BlipClass:GenerateUUID()
 
     repeat
         randomKey = uuid()
-        if not BlipClass.blips[randomKey] then 
+        if not self.server_blips[randomKey] then 
             isUUIDGenerated = true 
         end
     until isUUIDGenerated
@@ -179,7 +172,7 @@ SetInterval(function()
     local time = GetGameTimer()
     local updates = {}
 
-    for key, blip in pairs(BlipClass.blips) do
+    for key, blip in pairs(st.blips.server_blips) do
         if (time - blip.refreshTimer) <= blip.refreshRate then
             goto continue
         end
@@ -191,7 +184,7 @@ SetInterval(function()
         blipData.netID = blip.netID
 
         if blipData.isActive and (time - blip.refreshTimer) <= distanceTimeoutTimer then
-            local lastPosition = blip.lastPosition or vector3(0, 0, 0)
+            local lastPosition = blip.lastPosition or GetEntityCoords(targetEntity)
             local currentPosition = GetEntityCoords(targetEntity)
             if #(currentPosition - lastPosition) < 5.0 then 
                 goto continue 
@@ -200,11 +193,11 @@ SetInterval(function()
 
         if blip.groups then
             for _, group in pairs(blip.groups) do
-                if not BlipClass.group_members[group] then
-                    BlipClass.group_members[group] = {}
+                if not st.blips.group_members[group] then
+                    st.blips.group_members[group] = {}
                 end
 
-                for _, user in pairs(BlipClass.group_members[group]) do
+                for _, user in pairs(st.blips.group_members[group]) do
                     if not updates[user] then
                         updates[user] = {}
                     end
@@ -240,7 +233,7 @@ SetInterval(function()
         blip.refreshTimer = time
 
         if not blipData.isActive then
-            BlipClass.blips[key] = nil
+            st.blips.server_blips[key] = nil
         end
 
         ::continue::
@@ -248,7 +241,7 @@ SetInterval(function()
 
     if next(updates) then
         for user, data in pairs(updates) do
-            TriggerClientEvent("drp_blipsv2:UpdateData", user, data)
+            TriggerClientEvent("st_libs:UpdateData", user, data)
         end
     end
 end, 1000)

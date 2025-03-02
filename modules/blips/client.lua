@@ -1,46 +1,21 @@
 st.require("framework-bridge")
 
-local blips_cache = {}
-local lastJob = ''
+local BlipClass = {
+    blips_cache = {},
+    lastJob = "",
+}
 
-ESX = nil
+function BlipClass:new(t)
+    local instance = t or {}
+    setmetatable(instance, self)
+    self.__index = self
+    instance.lastJob = st.framework:GetJobName()
+    return instance
+end
 
-Citizen.CreateThread(function()
-    while ESX == nil do
-        TriggerEvent('esx:getSharedObject', function(obj)ESX = obj end)
-        Citizen.Wait(0)
-    end
-
-    while ESX.GetPlayerData().job == nil do
-        Citizen.Wait(100)
-    end
-
-    while not ESX.IsPlayerLoaded() do
-        Wait(10)
-    end
-    
-    ESX.PlayerData = ESX.GetPlayerData()
-    lastJob = ESX.PlayerData.job.name
-end)
-
-RegisterNetEvent('esx:setJob')
-AddEventHandler('esx:setJob', function(job)
-    ESX.PlayerData.job = job
-
-    if ESX.PlayerData.job.name ~= lastJob then
-        WipeBlips()
-    end
-
-    lastJob = ESX.PlayerData.job.name
-end)
-
-RegisterNetEvent("drp_blipsv2:UpdateData", function(data)
-    RefreshBlips(data)
-end)
-
-RefreshBlips = function(blipData)
+function BlipClass:RefreshBlips(blipData)
     for key, data in pairs(blipData) do
-        local previous_data = blips_cache[key] or {}
+        local previous_data = self.blips_cache[key] or {}
         data.blip = previous_data.blip
 
         if not data.isActive and (DoesBlipExist(data.blip) or data.attachOnEntity) then
@@ -93,50 +68,49 @@ RefreshBlips = function(blipData)
         end
 
         if DoesBlipExist(data.blip) then
-            setBlipProperties(data.blip, data)
+            self:setBlipProperties(data.blip, data)
         end
 
-        blips_cache[key] = data
+        self.blips_cache[key] = data
     end
 end
 
-WipeBlips = function()
-    for name, data in pairs(blips_cache) do
+function BlipClass:WipeBlips()
+    for _, data in pairs(self.blips_cache) do
         local entity = NetworkGetEntityFromNetworkId(data.netID)
         if DoesEntityExist(entity) and not DoesBlipExist(data.blip) then
             data.blip = GetBlipFromEntity(entity)
         end
         
-        if DoesBlipExist(data.blip) then
+        if data.blip and DoesBlipExist(data.blip) then
             RemoveBlip(data.blip)
         end
     end
-
-    blips_cache = {}
+    self.blips_cache = {}
 end
 
-setBlipProperties = function(blip, props)
-    if props.sprite then
-        SetBlipSprite(blip, props.sprite)
+function BlipClass:setBlipProperties(blip, props)
+    if props.sprite then 
+        SetBlipSprite(blip, props.sprite) 
     end
 
-    if props.colour then
-        SetBlipColour(blip, props.colour)
+    if props.colour then 
+        SetBlipColour(blip, props.colour) 
     end
 
-    if props.scale then
-        SetBlipScale(blip, props.scale)
+    if props.scale then 
+        SetBlipScale(blip, props.scale) 
     end
 
-    if props.position then
-        SetBlipCoords(blip, props.position.x, props.position.y, props.position.z)
+    if props.position then 
+        SetBlipCoords(blip, props.position.x, props.position.y, props.position.z) 
     end
 
     if props.hasCreated then
         SetBlipRoute(blip, props.route)
 
-        if props.routColour then
-            SetBlipRouteColour(targetBlip, props.routColour)
+        if props.routeColour then 
+            SetBlipRouteColour(blip, props.routeColour) 
         end
     end
 
@@ -149,3 +123,20 @@ setBlipProperties = function(blip, props)
         EndTextCommandSetBlipName(blip)
     end
 end
+
+st.blips = BlipClass:new()
+
+if st.framework:is("ESX") then
+    RegisterNetEvent('esx:setJob', function(job)
+        if job.name ~= st.blips.lastJob then
+            st.blips:WipeBlips()
+        end
+        st.blips.lastJob = job.name
+    end)
+end
+
+RegisterNetEvent("st_libs:UpdateData", function(data)
+    st.blips:RefreshBlips(data)
+end)
+
+return st.blips
