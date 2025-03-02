@@ -589,7 +589,12 @@ local function getValidEntities(coords)
 
                     newData.coords = newCoords
 
-                    if data.entityOffset then
+                    if data.bone then
+                        local boneId = GetEntityBoneIndexByName(data.entity, data.bone)
+                        if boneId ~= -1 then
+                            newData.coords = GetEntityBonePosition_2(data.entity, boneId)
+                        end
+                    elseif data.entityOffset then
                         newData.coords = GetOffsetFromEntityInWorldCoords(data.entity, data.entityOffset.x, data.entityOffset.y, data.entityOffset.z)
                     end
 
@@ -674,7 +679,12 @@ local function getValidPlayers(coords)
 
                     newData.coords = newCoords
 
-                    if data.entityOffset then
+                    if data.bone then
+                        local boneId = GetEntityBoneIndexByName(playerPed, data.bone)
+                        if boneId ~= -1 then
+                            newData.coords = GetEntityBonePosition_2(playerPed, boneId)
+                        end
+                    elseif data.entityOffset then
                         newData.coords = GetOffsetFromEntityInWorldCoords(playerPed, data.entityOffset.x, data.entityOffset.y, data.entityOffset.z)
                     end
 
@@ -718,7 +728,12 @@ local function getValidModels(coords)
                             newData.entity = newEntity
                             newData.coords = newCoords
 
-                            if data.entityOffset then
+                            if data.bone then
+                                local boneId = GetEntityBoneIndexByName(newEntity, data.bone)
+                                if boneId ~= -1 then
+                                    newData.coords = GetEntityBonePosition_2(newEntity, boneId)
+                                end
+                            elseif data.entityOffset then
                                 newData.coords = GetOffsetFromEntityInWorldCoords(newEntity, data.entityOffset.x, data.entityOffset.y, data.entityOffset.z)
                             end
 
