@@ -91,6 +91,20 @@ function User:getJob()
     return nil
 end
 
+function User:getPlayerIdentifier()
+    if not self.data then 
+        return nil
+    end
+
+    if st.framework:is("ESX") then
+        return self.data.identifier
+    elseif st.framework:is("QB") then
+        return self.data.citizenid
+    end
+  
+    return nil
+end
+
 ---@return string Gang name
 function User:getGang()
     if st.framework:is("QB") then
@@ -248,9 +262,9 @@ end
 
 ---@param source integer source ID
 ---@return table identifier
-function FrameworkClass:getUserIdentifiers(source)
+function FrameworkClass:getUserIdentifier(source)
     local user = User:get(source)
-    return user:getIdentifiers()
+    return user:getIdentifier()
 end
 
 ---@param source integer source ID
