@@ -1,20 +1,61 @@
 st.require("framework-bridge")
 
-local BlipClass = {
-    blips_cache = {},
-    lastJob = "",
-}
+local blips_cache = {}
+local lastJob = ""
 
-function BlipClass:new(t)
-    local instance = t or {}
-    setmetatable(instance, self)
-    self.__index = self
-    return instance
+local function WipeBlips()
+    for _, data in pairs(blips_cache) do
+        local entity = NetworkGetEntityFromNetworkId(data.netID)
+        if DoesEntityExist(entity) and not DoesBlipExist(data.blip) then
+            data.blip = GetBlipFromEntity(entity)
+        end
+        
+        if data.blip and DoesBlipExist(data.blip) then
+            RemoveBlip(data.blip)
+        end
+    end
+
+    blips_cache = {}
 end
 
-function BlipClass:RefreshBlips(blipData)
+local function setBlipProperties(blip, props)
+    if props.sprite then 
+        SetBlipSprite(blip, props.sprite) 
+    end
+
+    if props.colour then 
+        SetBlipColour(blip, props.colour) 
+    end
+
+    if props.scale then 
+        SetBlipScale(blip, props.scale) 
+    end
+
+    if props.position then 
+        SetBlipCoords(blip, props.position.x, props.position.y, props.position.z) 
+    end
+
+    if props.hasCreated then
+        SetBlipRoute(blip, props.route)
+
+        if props.routeColour then 
+            SetBlipRouteColour(blip, props.routeColour) 
+        end
+    end
+
+    SetBlipAlpha(blip, 255)
+    SetBlipAsShortRange(blip, true)
+
+    if props.name then
+        BeginTextCommandSetBlipName('STRING')
+        AddTextComponentString(props.name)
+        EndTextCommandSetBlipName(blip)
+    end
+end
+
+local function RefreshBlips(blipData)
     for key, data in pairs(blipData) do
-        local previous_data = self.blips_cache[key] or {}
+        local previous_data = blips_cache[key] or {}
         data.blip = previous_data.blip
 
         if not data.isActive and (DoesBlipExist(data.blip) or data.attachOnEntity) then
@@ -67,79 +108,26 @@ function BlipClass:RefreshBlips(blipData)
         end
 
         if DoesBlipExist(data.blip) then
-            self:setBlipProperties(data.blip, data)
+            setBlipProperties(data.blip, data)
         end
 
-        self.blips_cache[key] = data
+        blips_cache[key] = data
     end
 end
-
-function BlipClass:WipeBlips()
-    for _, data in pairs(self.blips_cache) do
-        local entity = NetworkGetEntityFromNetworkId(data.netID)
-        if DoesEntityExist(entity) and not DoesBlipExist(data.blip) then
-            data.blip = GetBlipFromEntity(entity)
-        end
-        
-        if data.blip and DoesBlipExist(data.blip) then
-            RemoveBlip(data.blip)
-        end
-    end
-    self.blips_cache = {}
-end
-
-function BlipClass:setBlipProperties(blip, props)
-    if props.sprite then 
-        SetBlipSprite(blip, props.sprite) 
-    end
-
-    if props.colour then 
-        SetBlipColour(blip, props.colour) 
-    end
-
-    if props.scale then 
-        SetBlipScale(blip, props.scale) 
-    end
-
-    if props.position then 
-        SetBlipCoords(blip, props.position.x, props.position.y, props.position.z) 
-    end
-
-    if props.hasCreated then
-        SetBlipRoute(blip, props.route)
-
-        if props.routeColour then 
-            SetBlipRouteColour(blip, props.routeColour) 
-        end
-    end
-
-    SetBlipAlpha(blip, 255)
-    SetBlipAsShortRange(blip, true)
-
-    if props.name then
-        BeginTextCommandSetBlipName('STRING')
-        AddTextComponentString(props.name)
-        EndTextCommandSetBlipName(blip)
-    end
-end
-
-st.blips = BlipClass:new()
 
 if st.framework:is("ESX") then
     RegisterNetEvent('esx:setJob', function(job)
-        if job.name ~= st.blips.lastJob then
-            st.blips:WipeBlips()
+        if job.name ~= lastJob then
+            WipeBlips()
         end
-        st.blips.lastJob = job.name
+        lastJob = job.name
     end)
 
     RegisterNetEvent("esx:playerLoaded", function(xPlayer)
-        st.blips.lastJob = xPlayer.job.name
+        lastJob = xPlayer.job.name
     end)
 end
 
 RegisterNetEvent("st_libs:UpdateData", function(data)
-    st.blips:RefreshBlips(data)
+    RefreshBlips(data)
 end)
-
-return st.blips
