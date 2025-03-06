@@ -29,6 +29,8 @@ function FrameworkClass:init()
     elseif self.name == "QB" then
         self.object = exports["qb-core"]:GetCoreObject()
     end
+
+    self.player = self:getPlayer()
 end
 
 ---@return string Name of the frameworkt
@@ -106,6 +108,17 @@ function FrameworkClass:GetJobGrade()
     return nil
 end
 
+---@return string Job grade name
+function FrameworkClass:GetGradeName()
+    if self.name == "ESX" then
+        return self.player.job.grade_name
+    elseif self.name == "QB" then
+        return self.player.job.grade.name
+    end
+
+    return nil
+end
+
 ---@return string Gang name
 function FrameworkClass:GetGangName()
     if self.name == "QB" then
@@ -135,20 +148,24 @@ st.framework = FrameworkClass:new()
 if st.framework:is("ESX") then
     RegisterNetEvent("esx:playerLoaded", function(xPlayer)
         st.framework.player = xPlayer
+        st.hook.doActions("playerLoaded")
     end)
 
     RegisterNetEvent("esx:onPlayerLogout", function()
         st.framework.player = nil
+        st.hook.doActions("onPlayerLogout")
     end)
 
-    RegisterNetEvent("esx:setJob", function(job)
-        st.framework.player.job = job
+    RegisterNetEvent("esx:setJob", function(newJob)
+        st.framework.player.job = newJob
+        st.hook.doActions("setJob", newJob)
     end)
 end
 
 if st.framework:is("QB") then
     RegisterNetEvent("QBCore:Client:OnJobUpdate", function(JobInfo)
         st.framework.player.job = JobInfo
+        st.hook.doActions("setJob", JobInfo)
     end)
 
     RegisterNetEvent("QBCore:Client:OnGangUpdate", function(GangInfo)

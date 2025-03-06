@@ -11,6 +11,7 @@ local mainResourceFramework = {
 ---@field source integer source ID
 local User = {
     source = 0,
+    identifier = "",
     data = {}
 }
 
@@ -19,6 +20,7 @@ function User:get(source)
     self = st.table.copy(User)
     self.source = tonumber(source)
     self:init()
+    self.identifier = self:getPlayerIdentifier()
     return self
 end
 
@@ -105,12 +107,51 @@ function User:getPlayerIdentifier()
     return nil
 end
 
+function User:getJob()
+    if st.framework:is("ESX") then
+        return self.data.job
+    elseif st.framework:is("QB") then
+        return self.data.job
+    end
+    return nil
+end
+
 ---@return string Gang name
 function User:getGang()
     if st.framework:is("QB") then
         return self.data.gang
     end
 
+    return nil
+end
+
+---@return string Job name
+function User:getJobName()
+    if st.framework:is("ESX") then
+        return self.data.job.name
+    elseif st.framework:is("QB") then
+        return self.data.job
+    end
+    return nil
+end
+
+---@return string Job grade name
+function User:getGradeName()
+    if st.framework:is("ESX") then
+        return self.data.job.grade_name
+    elseif st.framework:is("QB") then
+        return self.data.job
+    end
+    return nil
+end
+
+---@return string Player Name
+function User:getPhoneNumber()
+    if st.framework:is("ESX") then
+        return self.data.phoneNumber
+    elseif st.framework:is("QB") then
+        return self.data.phone_number
+    end
     return nil
 end
 
@@ -249,6 +290,15 @@ function FrameworkClass:is(name)
     return self:get() == name
 end
 
+function FrameworkClass:getPlayers()
+    if self:is("ESX") then
+        return self.object.GetPlayers()
+    elseif self:is("QB") then
+        return self.object.GetPlayers()
+    end
+    return {}
+end
+
 -------------
 -- USER DATA
 -------------
@@ -310,5 +360,22 @@ end
 -------------
 
 st.framework = FrameworkClass:new()
+
+if st.framework:is("ESX") then
+    RegisterNetEvent("esx:setJob", function(source, newJob, lastJob)
+        st.hook.doActions("setJob", source, newJob, lastJob)
+        local user = st.framework:getUser(source)
+        user.data.job = newJob
+    end)
+
+    RegisterNetEvent("esx:playerLoaded", function(playerId)
+        st.hook.doActions("playerLoaded", playerId)
+    end)
+
+    RegisterNetEvent("esx:playerDropped", function(playerId)
+        st.hook.doActions("playerDropped", playerId)
+    end)
+elseif st.framework:is("QB") then
+end
 
 return st.framework
