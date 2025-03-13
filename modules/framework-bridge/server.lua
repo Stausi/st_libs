@@ -15,6 +15,7 @@ local User = {
     data = {}
 }
 
+---@param source integer source ID
 ---@return User
 function User:get(source)
     self = st.table.copy(User)
@@ -30,6 +31,27 @@ function User:init()
     elseif st.framework:is("QB") then
         self.data = st.framework.object.GetPlayer(self.source)
     end
+end
+
+---@param identifier string Player identifier
+---@return User
+function User:getByIdentifier(identifier)
+    self = st.table.copy(User)
+    self.identifier = identifier
+    self:initByIdentifier()
+    return self
+end
+
+function User:initByIdentifier()
+    if st.framework:is("ESX") then
+        self.data = st.framework.object.GetPlayerFromIdentifier(self.identifier)
+    elseif st.framework:is("QB") then
+        self.data = st.framework.object.GetPlayerByCitizenId(self.identifier)
+    end
+end
+
+function User:IsOnline()
+    return self.data ~= nil
 end
 
 ---@param moneyType string cash, bank, default: money
@@ -105,6 +127,22 @@ function User:getPlayerIdentifier()
     end
   
     return nil
+end
+
+function User:getRPName()
+    if not self.data then 
+        return "Unknown"
+    end
+
+    if st.framework:is("ESX") then
+        if self.data.get and self.data.get("firstName") and self.data.get("lastName") then
+            return self.data.get("firstName") .. " " .. self.data.get("lastName")
+        end
+    elseif st.framework:is("QB") then
+        return self.data.firstname .. " " .. self.data.lastname
+    end
+
+    return "Unknown"
 end
 
 function User:getJob()
@@ -299,6 +337,25 @@ function FrameworkClass:getPlayers()
     return {}
 end
 
+function FrameworkClass:getJobs()
+    if self:is("ESX") then
+        return self.object.GetJobs()
+    elseif self:is("QB") then
+        return self.object.GetJobs()
+    end
+    return {}
+end
+
+function FrameworkClass:getJobData(name)
+    local jobs = self:getJobs()
+    for _, job in pairs(jobs) do
+        if job.name == name then
+            return job
+        end
+    end
+    return nil
+end
+
 -------------
 -- USER DATA
 -------------
@@ -307,6 +364,13 @@ end
 ---@return table
 function FrameworkClass:getUser(source)
     local user = User:get(source)
+    return user
+end
+
+---@param identifier string Player identifier
+---@return table
+function FrameworkClass:getUserByIdentifier(identifier)
+    local user = User:getByIdentifier(identifier)
     return user
 end
 

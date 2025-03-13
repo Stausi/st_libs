@@ -195,7 +195,6 @@ end
 
 _ENV.st = st
 _ENV.cache = cache
-_ENV.require = st.require
 
 local notifyEvent = ('__st_notify_%s'):format(cache.resource)
 
