@@ -126,6 +126,10 @@ function st.registerBlipEntity(source, data)
         userTarget = source
     end
 
+    if not data.blipData then
+        data.blipData = {}
+    end
+
     local generatedKey = GenerateUUID()
     server_blips[generatedKey] = {
         netID = data.netID,
@@ -135,13 +139,13 @@ function st.registerBlipEntity(source, data)
         refreshRate = data.refreshRate or 2000,
         refreshTimer = 0,
         blipData = {
-            name = data.name or generatedKey,
-            sprite = data.sprite or 1,
-            colour = data.colour or 1,
-            route = data.route or false,
-            routColour = data.routColour or data.colour,
-            scale = data.scale or 1.0,
-            attachOnEntity = data.attachOnEntity or false,
+            name = data.blipData.name or generatedKey,
+            sprite = data.blipData.sprite or 1,
+            colour = data.blipData.colour or 1,
+            route = data.blipData.route or false,
+            routColour = data.blipData.routColour or data.blipData.colour,
+            scale = data.blipData.scale or 1.0,
+            attachOnEntity = data.blipData.attachOnEntity or false,
         }
     }
 end
