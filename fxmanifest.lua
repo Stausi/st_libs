@@ -1,6 +1,6 @@
 author "Stausi : shop.stausi.com"
 documentation "https://docs.stausi.com/"
-version "1.0.13"
+version "1.0.14"
 package_id "1"
 
 fx_version "adamant"
