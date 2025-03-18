@@ -12,9 +12,7 @@
 
 ## Linden
 
-<p align="center">
-  A big shoutout to (Linden)[https://github.com/overextended] for his work on ox_lib, which has been a great inspiration and foundation for many features in this library. While a lot of ox_lib is used for better compatibility with Stausi Scripts, many parts of this library are also unique and tailored specifically for our needs. If you don't need my specialised features, please visit [ox_lib](https://github.com/overextended/ox_lib)
-</p>
+A big shoutout to (Linden)[https://github.com/overextended] for his work on ox_lib, which has been a great inspiration and foundation for many features in this library. While a lot of ox_lib is used for better compatibility with Stausi Scripts, many parts of this library are also unique and tailored specifically for our needs. If you don't need my specialised features, please visit [ox_lib](https://github.com/overextended/ox_lib)
 
 ## 📚 Documentation
 
