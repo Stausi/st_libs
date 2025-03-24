@@ -154,6 +154,15 @@ function User:getJob()
     return nil
 end
 
+---@param name string Job name
+---@param grade integer Job grade
+function User:setJob(name, grade)
+    if st.framework:is("ESX") then
+        self.data.setJob(name, grade)
+    elseif st.framework:is("QB") then
+    end
+end
+
 ---@return string Gang name
 function User:getGang()
     if st.framework:is("QB") then
@@ -354,6 +363,18 @@ function FrameworkClass:getJobData(name)
         end
     end
     return nil
+end
+
+function FrameworkClass:refreshJob(name)
+    if self:is("ESX") then
+        if not self.object.RefreshJob then
+            return st.print.error("RefreshJob not found in ESX. Please read the docs at https://docs.stausi.com/")
+        end
+
+        self.object.RefreshJob(name)
+    elseif self:is("QB") then
+        self.object.RefreshJob(name)
+    end
 end
 
 -------------
