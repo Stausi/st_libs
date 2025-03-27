@@ -45,8 +45,10 @@ end
 function User:initByIdentifier()
     if st.framework:is("ESX") then
         self.data = st.framework.object.GetPlayerFromIdentifier(self.identifier)
+        self.source = self.data?.source
     elseif st.framework:is("QB") then
         self.data = st.framework.object.GetPlayerByCitizenId(self.identifier)
+        self.source = self.data?.source
     end
 end
 
@@ -150,6 +152,15 @@ function User:getJob()
         return self.data.job
     elseif st.framework:is("QB") then
         return self.data.job
+    end
+    return nil
+end
+
+function User:getJobGrade()
+    if st.framework:is("ESX") then
+        return self.data.job.grade
+    elseif st.framework:is("QB") then
+        return self.data.job.grade
     end
     return nil
 end
@@ -374,6 +385,22 @@ function FrameworkClass:refreshJob(name)
         self.object.RefreshJob(name)
     elseif self:is("QB") then
         self.object.RefreshJob(name)
+    end
+end
+
+---@param item string
+---@param callback fun(source: number, user: User, ...): void
+function FrameworkClass:registerUsableItem(item, callback)
+    if self:is("ESX") then
+        self.object.RegisterUsableItem(item, function(source, ...)
+            local user = User:get(source)
+            callback(source, user, ...)
+        end)
+    elseif self:is("QB") then
+        self.object.Functions.CreateUseableItem(item, function(source, itemData, ...)
+            local user = User:get(source)
+            callback(source, user, itemData, ...)
+        end)
     end
 end
 
