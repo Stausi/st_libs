@@ -214,11 +214,11 @@ RegisterNUICallback('progressComplete', function(data, cb)
     progress = nil
 end)
 
-RegisterCommand('cancelprogress', function()
+RegisterCommand('st_cancelprogress', function()
     if progress?.canCancel then progress = false end
 end)
 
-RegisterKeyMapping('cancelprogress', locale('cancel_progress'), 'keyboard', 'x')
+RegisterKeyMapping('st_cancelprogress', locale('cancel_progress'), 'keyboard', 'x')
 
 local function deleteProgressProps(serverId)
     local playerProps = createdProps[serverId]
