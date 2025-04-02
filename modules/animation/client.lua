@@ -199,10 +199,10 @@ AddEventHandler('onResourceStop', function(resourceName)
         if PlayerHasProp then
             DestroyAllProps()
         end
+
         if IsInAnimation then
             local ped = PlayerPedId()
             ClearPedTasks(ped)
-            ResetAnimSet(ped)
             IsInAnimation = false
         end
     end
