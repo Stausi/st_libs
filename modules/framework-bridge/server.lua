@@ -352,7 +352,7 @@ function FrameworkClass:getPlayers()
     if self:is("ESX") then
         return self.object.GetPlayers()
     elseif self:is("QB") then
-        return self.object.GetPlayers()
+        return self.object.Functions.GetQBPlayers()
     end
     return {}
 end
