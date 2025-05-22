@@ -10,6 +10,30 @@ function JobsCache:new(t)
 end
 
 function JobsCache:getJobCount(name)
+    if name == "police" then
+        return self:getPoliceCount(name)
+    end
+
+    if not st.jobscache.data[name] then
+        return 0
+    end
+
+    return st.jobscache.data[name]
+end
+
+function JobsCache:getPoliceCount(name)
+    if st.framework:is("QB") then
+        local amount = 0
+        local players = st.framework:getPlayers()
+        for _, player in pairs(players) do
+            if player.PlayerData.job.type == 'leo' and player.PlayerData.job.onduty then
+                amount += 1
+            end
+        end
+
+        return amount
+    end
+
     if not st.jobscache.data[name] then
         return 0
     end
