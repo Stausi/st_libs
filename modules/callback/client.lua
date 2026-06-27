@@ -4,6 +4,8 @@ local cbEvent = '__st_cb_%s'
 local callbackTimeout = GetConvarInt('st:callbackTimeout', 300000)
 
 RegisterNetEvent(cbEvent:format(cache.resource), function(key, ...)
+    if source == '' then return end
+
     local cb = pendingCallbacks[key]
 
     if not cb then return end
@@ -57,6 +59,12 @@ local function triggerServerCallback(_, event, delay, cb, ...)
             return promise and promise:reject(response) or error(response)
         end
 
+        if response == 'cb_rate_limited' then
+            response = ("callback '%s' was rate limited"):format(event)
+
+            return promise and promise:reject(response) or error(response)
+        end
+
         response = { response, ... }
 
         if promise then
@@ -97,6 +105,8 @@ st.callback = setmetatable({}, {
 
 ---@param event string
 ---@param delay? number | false prevent the event from being called for the given time.
+---Sends an event to the server and halts the current thread until a response is returned.
+---@diagnostic disable-next-line: duplicate-set-field
 function st.callback.await(event, delay, ...)
     return triggerServerCallback(nil, event, delay, false, ...)
 end

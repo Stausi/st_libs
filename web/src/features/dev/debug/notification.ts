@@ -6,38 +6,46 @@ export const debugCustomNotification = () => {
     {
       action: 'notify',
       data: {
-        title: 'Success',
-        description: 'Notification description',
-        type: 'success',
-        id: 'pogchamp',
-        duration: 20000,
-        style: {
-          '.description': {
-            color: 'red',
-          },
-        },
-      },
-    },
-  ]);
-  debugData<NotificationProps>([
-    {
-      action: 'notify',
-      data: {
         title: 'Error',
         description: 'Notification description',
         type: 'error',
+        duration: 50000,
       },
     },
   ]);
+
   debugData<NotificationProps>([
     {
       action: 'notify',
       data: {
-        title: 'Custom icon success',
+        title: 'Inform',
+        description: 'Notification description',
+        type: 'inform',
+        duration: 50000,
+      },
+    },
+  ]);
+
+  debugData<NotificationProps>([
+    {
+      action: 'notify',
+      data: {
+        title: 'Success',
         description: 'Notification description',
         type: 'success',
-        icon: 'microchip',
-        showDuration: false,
+        duration: 50000,
+      },
+    },
+  ]);
+
+  debugData<NotificationProps>([
+    {
+      action: 'notify',
+      data: {
+        title: 'Warning',
+        description: 'Notification description',
+        type: 'warning',
+        duration: 50000,
       },
     },
   ]);

@@ -70,6 +70,10 @@ AddEventHandler('playerDropped', function()
     for key, blip in pairs(server_blips) do
         if not blip.groups and blip.user then
             if blip.user == _source then
+                if blip.onRemoveBlip then
+                    blip.onRemoveBlip(blip.netID)
+                end
+
                 server_blips[key] = nil
             end
         end
@@ -138,6 +142,9 @@ function st.registerBlipEntity(source, data)
         user = userTarget,
         refreshRate = data.refreshRate or 2000,
         refreshTimer = 0,
+        onUpdateCoords = data.onUpdateCoords,
+        onRemoveBlip = data.onRemoveBlip,
+        resource = GetInvokingResource(),
         blipData = {
             name = data.blipData.name or generatedKey,
             sprite = data.blipData.sprite or 1,
@@ -148,18 +155,61 @@ function st.registerBlipEntity(source, data)
             attachOnEntity = data.blipData.attachOnEntity or false,
         }
     }
+
+    return generatedKey
+end
+
+function st.getBlipData(key)
+    if not key then
+        return nil
+    end
+
+    return server_blips[key]
+end
+
+function st.updateBlipEntity(key, data)
+    if not key or not data then
+        return 
+    end
+
+    local blip = server_blips[key]
+    if not blip then
+        return 
+    end
+
+    if data.blipData then
+        for k, v in pairs(data.blipData) do
+            blip.blipData[k] = v
+        end
+    end
+
+    if data.refreshRate then
+        blip.refreshRate = data.refreshRate
+    end
+
+    blip.refreshTimer = GetGameTimer()
 end
 
 function st.removeBlipEntity(netID)
-    if not netID then 
+    if not netID then
         return 
     end
 
     local isRegistered, key = IsEntityRegistered(netID)
-    if not isRegistered then 
+    if not isRegistered then
         return 
     end
 
+    local blip = server_blips[key]
+    if not blip then
+        return 
+    end
+
+    if blip.onRemoveBlip then
+        blip.onRemoveBlip(netID)
+    end
+
+    TriggerClientEvent("st_libs:removeBlip", -1, key)
     server_blips[key] = nil
 end
 
@@ -226,11 +276,19 @@ Citizen.CreateThread(function()
             if blipData.isActive then
                 blipData.position = GetEntityCoords(targetEntity)
                 blip.lastPosition = blipData.position
+
+                if blip.onUpdateCoords then
+                    blip.onUpdateCoords(blipData.position, blip.netID)
+                end
             end
 
             blip.refreshTimer = time
 
             if not blipData.isActive then
+                if blip.onRemoveBlip then
+                    blip.onRemoveBlip(blip.netID)
+                end
+
                 server_blips[key] = nil
             end
 
@@ -241,6 +299,19 @@ Citizen.CreateThread(function()
             for user, data in pairs(updates) do
                 TriggerClientEvent("st_libs:UpdateData", user, data)
             end
+        end
+    end
+end)
+
+AddEventHandler('onResourceStop', function(resource)
+    for key, blip in pairs(server_blips) do
+        if blip.resource == resource then
+            if blip.onRemoveBlip then
+                blip.onRemoveBlip(blip.netID)
+            end
+
+            TriggerClientEvent("st_libs:removeBlip", -1, blip)
+            server_blips[key] = nil
         end
     end
 end)

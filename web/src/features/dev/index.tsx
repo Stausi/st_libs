@@ -2,6 +2,7 @@ import { ActionIcon, Button, Divider, Drawer, Stack, Tooltip } from '@mantine/co
 import { debugCustomNotification } from './debug/notification';
 import { debugCircleProgressbar, debugProgressbar } from './debug/progress';
 import { debugHintUI } from './debug/hintui';
+import { debugTextUI } from './debug/textui';
 import { useState } from 'react';
 import LibIcon from '../../components/LibIcon';
 
@@ -41,6 +42,9 @@ const Dev: React.FC = () => {
           <Divider />
           <Button fullWidth onClick={() => { debugHintUI(); setOpened(false); }}>
             Show HintUI
+          </Button>
+          <Button fullWidth onClick={() => { debugTextUI(); setOpened(false); }}>
+            Show TextUI
           </Button>
         </Stack>
       </Drawer>

@@ -24,3 +24,4 @@
 function st.s_notify(source, data)
     TriggerClientEvent('st_libs:notify', source, data)
 end
+exports('notify', st.s_notify)

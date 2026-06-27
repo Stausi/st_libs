@@ -36,7 +36,11 @@ local function triggerClientCallback(_, event, playerId, cb, ...)
     pendingCallbacks[key] = function(response, ...)
         if response == 'cb_invalid' then
             response = ("callback '%s' does not exist"):format(event)
+            return promise and promise:reject(response) or error(response)
+        end
 
+        if response == 'cb_rate_limited' then
+            response = ("callback '%s' was rate limited"):format(event)
             return promise and promise:reject(response) or error(response)
         end
 
@@ -78,6 +82,8 @@ st.callback = setmetatable({}, {
 
 ---@param event string
 ---@param playerId number
+--- Sends an event to a client and halts the current thread until a response is returned.
+---@diagnostic disable-next-line: duplicate-set-field
 function st.callback.await(event, playerId, ...)
     return triggerClientCallback(nil, event, playerId, false, ...)
 end
@@ -98,6 +104,8 @@ local pcall = pcall
 
 ---@param name string
 ---@param cb function
+---Registers an event handler and callback function to respond to client requests.
+---@diagnostic disable-next-line: duplicate-set-field
 function st.callback.register(name, cb)
     event = cbEvent:format(name)
 

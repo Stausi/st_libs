@@ -128,6 +128,24 @@ if st.framework:is("ESX") then
     end)
 end
 
+RegisterNetEvent("st_libs:removeBlip", function(key)
+    local blipData = blips_cache[key]
+    if not blipData then return end
+
+    if blipData.netID then
+        if NetworkDoesEntityExistWithNetworkId(blipData.netID) then
+            local entity = NetworkGetEntityFromNetworkId(blipData.netID)
+            if DoesEntityExist(entity) and not DoesBlipExist(blipData.blip) then
+                blipData.blip = GetBlipFromEntity(entity)
+            end
+        end
+
+        RemoveBlip(blipData.blip)
+    end
+
+    blips_cache[key] = nil
+end)
+
 RegisterNetEvent("st_libs:UpdateData", function(data)
     RefreshBlips(data)
 end)

@@ -6,8 +6,7 @@ import ScaleFade from '../../transitions/ScaleFade';
 import type { ProgressbarProps } from '../../typings';
 
 const useStyles = createStyles((theme) => {
-  const barColor = theme.colors[theme.primaryColor][theme.fn.primaryShade()];
-  
+  const barColor = "#2be1b7"
   const lightenColor = (hex: string, percent: number): string => {
     const num = parseInt(hex.slice(1), 16);
     const r = Math.min(255, (num >> 16) + (255 * percent));

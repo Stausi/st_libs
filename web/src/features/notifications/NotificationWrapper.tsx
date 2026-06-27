@@ -1,12 +1,16 @@
 import { useNuiEvent } from '../../hooks/useNuiEvent';
 import { toast, Toaster } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
-import { Box, Center, createStyles, Group, keyframes, RingProgress, Stack, Text, ThemeIcon } from '@mantine/core';
+import { Center, Box, createStyles, Group, keyframes, RingProgress, Stack, Text } from '@mantine/core';
 import React, { useState } from 'react';
 import tinycolor from 'tinycolor2';
 import type { NotificationProps } from '../../typings';
 import MarkdownComponents from '../../config/MarkdownComponents';
-import LibIcon from '../../components/LibIcon';
+
+import InfoSvg from "./InfoSvg";
+import ErrorSvg from "./ErrorSvg";
+import WarningSvg from "./WarningSvg";
+import CheckSvg from "./CheckSvg";
 
 const useStyles = createStyles((theme) => ({
   container: {
@@ -16,7 +20,7 @@ const useStyles = createStyles((theme) => ({
     color: theme.colors.dark[0],
     padding: 12,
     borderRadius: theme.radius.sm,
-    fontFamily: 'Roboto',
+    fontFamily: 'Gilroy',
     boxShadow: theme.shadows.sm,
   },
   title: {
@@ -26,13 +30,13 @@ const useStyles = createStyles((theme) => ({
   description: {
     fontSize: 12,
     color: theme.colors.dark[2],
-    fontFamily: 'Roboto',
+    fontFamily: 'Gilroy',
     lineHeight: 'normal',
   },
   descriptionOnly: {
     fontSize: 14,
     color: theme.colors.dark[2],
-    fontFamily: 'Roboto',
+    fontFamily: 'Gilroy',
     lineHeight: 'normal',
   },
 }));
@@ -49,14 +53,16 @@ const createAnimation = (from: string, to: string, visible: boolean) => keyframe
 });
 
 const getAnimation = (visible: boolean, position: string) => {
-  const animationOptions = visible ? '0.2s ease-out forwards' : '0.4s ease-in forwards'
+  const animationOptions = visible ? '0.2s ease-out forwards' : '0.4s ease-in forwards';
   let animation: { from: string; to: string };
 
   if (visible) {
-    animation = position.includes('bottom') ? { from: 'Y(30px)', to: 'Y(0px)' } : { from: 'Y(-30px)', to:'Y(0px)' };
+    animation = position.includes('bottom')
+      ? { from: 'Y(30px)', to: 'Y(0px)' }
+      : { from: 'Y(-30px)', to: 'Y(0px)' };
   } else {
     if (position.includes('right')) {
-      animation = { from: 'X(0px)', to: 'X(100%)' }
+      animation = { from: 'X(0px)', to: 'X(100%)' };
     } else if (position.includes('left')) {
       animation = { from: 'X(0px)', to: 'X(-100%)' };
     } else if (position === 'top-center') {
@@ -68,7 +74,7 @@ const getAnimation = (visible: boolean, position: string) => {
     }
   }
 
-  return `${createAnimation(animation.from, animation.to, visible)} ${animationOptions}`
+  return `${createAnimation(animation.from, animation.to, visible)} ${animationOptions}`;
 };
 
 const durationCircle = keyframes({
@@ -84,14 +90,9 @@ const Notifications: React.FC = () => {
     if (!data.title && !data.description) return;
 
     const toastId = data.id?.toString();
-    const duration = data.duration || 3000;
-
-    let iconColor: string;
     let position = data.position || 'top-right';
 
     data.showDuration = data.showDuration !== undefined ? data.showDuration : true;
-
-    if (toastId) setToastKey(prevKey => prevKey + 1);
 
     switch (position) {
       case 'top':
@@ -119,6 +120,7 @@ const Notifications: React.FC = () => {
       }
     }
 
+    let iconColor: string;
     if (!data.iconColor) {
       switch (data.type) {
         case 'error':
@@ -137,7 +139,22 @@ const Notifications: React.FC = () => {
     } else {
       iconColor = tinycolor(data.iconColor).toRgbString();
     }
-    
+
+    const IconComponent =
+      data.type === "success" ? CheckSvg :
+      data.type === "error" ? ErrorSvg :
+      data.type === "warning" ? WarningSvg :
+      InfoSvg;
+
+    const isPersistent = (data as any).persistent === true || data.duration === 0;
+    const duration = isPersistent ? Infinity : (data.duration || 3000);
+
+    if (isPersistent) {
+      data.showDuration = false;
+    }
+
+    if (toastId) setToastKey(prevKey => prevKey + 1);
+
     toast.custom(
       (t) => (
         <Box
@@ -145,53 +162,13 @@ const Notifications: React.FC = () => {
             animation: getAnimation(t.visible, position),
             ...data.style,
           }}
-          className={`${classes.container}`}
+          className={`${classes.container} notification-container ${data.type}`}
         >
           <Group noWrap spacing={12}>
-            {data.icon && (
-              <>
-                {data.showDuration ? (
-                  <RingProgress
-                    key={toastKey}
-                    size={38}
-                    thickness={2}
-                    sections={[{ value: 100, color: iconColor }]}
-                    style={{ alignSelf: !data.alignIcon || data.alignIcon === 'center' ? 'center' : 'start' }}
-                    styles={{
-                      root: {
-                        '> svg > circle:nth-of-type(2)': {
-                          animation: `${durationCircle} linear forwards reverse`,
-                          animationDuration: `${duration}ms`,
-                        },
-                        margin: -3,
-                      },
-                    }}
-                    label={
-                      <Center>
-                        <ThemeIcon
-                          color={iconColor}
-                          radius="xl"
-                          size={32}
-                          variant={tinycolor(iconColor).getAlpha() < 0 ? undefined : 'light'}
-                        >
-                          <LibIcon icon={data.icon} fixedWidth color={iconColor} animation={data.iconAnimation} />
-                        </ThemeIcon>
-                      </Center>
-                    }
-                  />
-                ) : (
-                  <ThemeIcon
-                    color={iconColor}
-                    radius="xl"
-                    size={32}
-                    variant={tinycolor(iconColor).getAlpha() < 0 ? undefined : 'light'}
-                    style={{ alignSelf: !data.alignIcon || data.alignIcon === 'center' ? 'center' : 'start' }}
-                  >
-                    <LibIcon icon={data.icon} fixedWidth color={iconColor} animation={data.iconAnimation} />
-                  </ThemeIcon>
-                )}
-              </>
-            )}
+            <Center style={{ width: 32, height: 32 }}>
+              <IconComponent />
+            </Center>
+
             <Stack spacing={0}>
               {data.title && <Text className={classes.title}>{data.title}</Text>}
               {data.description && (
@@ -203,15 +180,40 @@ const Notifications: React.FC = () => {
                 </ReactMarkdown>
               )}
             </Stack>
+
+            {data.showDuration && Number.isFinite(duration) && (
+              <RingProgress
+                key={toastKey}
+                size={18}
+                thickness={2}
+                sections={[{ value: 100, color: iconColor }]}
+                style={{ alignSelf: !data.alignIcon || data.alignIcon === 'center' ? 'center' : 'start' }}
+                className='notification-icon'
+                styles={{
+                  root: {
+                    '> svg > circle:nth-of-type(2)': {
+                      animation: `${durationCircle} linear forwards reverse`,
+                      animationDuration: `${duration}ms`,
+                    },
+                    margin: -3,
+                  },
+                }}
+              />
+            )}
           </Group>
         </Box>
       ),
       {
         id: toastId,
         duration: duration,
-        position: position,
+        position: position as any,
       }
     );
+  });
+
+  useNuiEvent<{ id: string | number }>('clearNotification', ({ id }) => {
+    if (id === undefined || id === null) return;
+    toast.dismiss(id.toString());
   });
 
   return <Toaster />;

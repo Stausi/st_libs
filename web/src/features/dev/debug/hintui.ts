@@ -8,7 +8,6 @@ export const debugHintUI = () => {
       data: {
         title: 'Current Task',
         text: 'Do something',
-        position: 'left-center',
         button: 'E',
       },
     },

@@ -4,91 +4,72 @@ import { Box, createStyles, Group } from '@mantine/core';
 import ReactMarkdown from 'react-markdown';
 import ScaleFade from '../../transitions/ScaleFade';
 import remarkGfm from 'remark-gfm';
-import type { HintUiPosition, HintUiProps } from '../../typings';
+import type { HintUiProps } from '../../typings';
 import MarkdownComponents from '../../config/MarkdownComponents';
-import LibIcon from '../../components/LibIcon';
 
-const useStyles = createStyles((theme, params: { position?: HintUiPosition }) => {
-  const position = params.position || 'left-center';
-  const isLeft = position.includes('left');
-  const isRight = position.includes('right');
-
-  const hexToRgba = (hex: string, alpha: number) => {
-    const bigint = parseInt(hex.slice(1), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  };
-
-  const primaryColor = theme.fn.primaryColor();
-  const primaryRgba = hexToRgba(primaryColor, 1);
-  const primaryTransparent = hexToRgba(primaryColor, 0);
-
+const useStyles = createStyles(() => {
   return {
     wrapper: {
-      height: '100%',
-      width: '100%',
       position: 'absolute',
+      top: '50%',
+      left: '1%',
+      transform: 'translateY(-50%)',
+      color: '#fff',
+      padding: '0.78vw',
+      borderRadius: '0.39vw',
+      width: 'max-content',
+      height: 'max-content',
       display: 'flex',
-      alignItems: 
-        position === 'top-center' ? 'baseline' :
-        position === 'bottom-center' ? 'flex-end' : 'center',
-      justifyContent: 
-        isRight ? 'flex-end' :
-        isLeft ? 'flex-start' : 'center',
+      flexDirection: 'column',
+      justifyContent: 'left',
+      alignItems: 'left',
+      border: 'none',
     },
     container: {
-      fontSize: 16,
-      padding: 16,
-      margin: 8,
+      width: '250px',
+      padding: '0.5vw',
+      boxSizing: 'border-box',
       backgroundColor: 'rgba(70, 70, 70, 0.5)',
       borderRadius: '0.3vw',
-      justifyContent: 'center',
-      marginLeft: isLeft ? '1.0vw' : isRight ? '1.0vw' : 0,
-      marginRight: isLeft ? '1.0vw' : isRight ? '1.0vw' : 0,
-      minWidth: '12vw',
     },
     title: {
-      fontSize: '.8vw',
+      fontSize: '18px',
       fontWeight: 600,
-      color: '#ffff',
-      textShadow: '0 0 0.1vw #000c1e',
+      color: 'rgb(255, 255, 255)',
+      borderRadius: '2px',
       display: 'flex',
       alignItems: 'center',
       gap: '10px',
+      marginLeft: '10px',
     },
     description: {
       width: '100%',
-      fontSize: '0.7vw',
+      fontSize: '13px',
       fontWeight: 'normal',
       marginBottom: '0.2vw',
       color: '#fff',
       textShadow: '0 0 0.2vw #000c1e',
     },
     button: {
-      width: '1.0vw',
-      height: '1.8vh',
+      width: '25px',
+      height: '25px',
       background: 'rgba(0, 0, 0, 0.25)',
       borderRadius: '0.08vw',
       textAlign: 'center',
-      lineHeight: '1.8vh',
+      lineHeight: '25px',
       fontWeight: 600,
       color: 'rgba(255, 255, 255, 0.8)',
-      fontSize: '0.6vw',
+      fontSize: '16px',
     },
     buttonText: {
       color: '#fff',
-      fontSize: '0.5vw',
+      fontSize: '12px',
       fontWeight: 600,
     },
     dividerLine: {
       width: '100%',
-      height: '0.07vh',
-      background: `linear-gradient(${isLeft ? '90deg' : isRight ? '270deg' : '0deg'}, 
-        ${primaryRgba} 0%, 
-        ${primaryRgba} 50%, 
-        ${primaryTransparent} 100%)`,
+      height: '0.2vh',
+      background: `linear-gradient(87deg, rgba(3,243,214,1) 0%, rgba(3,243,214,1) 50%, rgba(3,243,214,0) 100%)`,
       border: 'none',
       margin: '0.5vw 0',
     },
@@ -111,11 +92,20 @@ const HintUI: React.FC = () => {
     button: '',
   });
   const [visible, setVisible] = React.useState(false);
-  const { classes } = useStyles({ position: data.position });
+  const { classes } = useStyles();
 
   useNuiEvent<HintUiProps>('hintUI', (data) => {
     setData(data);
     setVisible(true);
+  });
+
+  useNuiEvent('hintUpdate', (data) => {
+    setData((prev) => ({
+      ...prev,
+      title: data.title || prev.title,
+      text: data.text || prev.text,
+      button: data.button || prev.button,
+    }));
   });
 
   useNuiEvent('hintUiHide', () => setVisible(false));
@@ -125,7 +115,7 @@ const HintUI: React.FC = () => {
       <ScaleFade visible={visible}>
         <Box className={classes.container}>
           <Group spacing={12} className={classes.title}>
-            <LibIcon icon="spinner" fixedWidth size="lg" animation="slowSpin" style={{ color: '#ffff', textShadow: '0 0 0.2vw #000c1e' }} />
+            <i className="fa-solid fa-spinner-third fa-spin"></i>
             <span>{data.title}</span>
           </Group>
           <hr className={classes.dividerLine} />

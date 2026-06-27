@@ -1,39 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Text, createStyles, Transition } from '@mantine/core';
+import { useState, useMemo } from 'react';
+import { Box, Text, createStyles, Transition, keyframes } from '@mantine/core';
 import { useNuiEvent } from '../../hooks/useNuiEvent';
+import type { TextUiProps as BaseTextUiProps, TextUiPosition } from '../../typings';
 
-const useStyles = createStyles((theme) => ({
+type TextUiEntry = BaseTextUiProps & {
+  id: string;
+  position?: TextUiPosition;
+};
+
+type TextUiMessage = {
+  entries?: TextUiEntry[];
+};
+
+const glow = keyframes({
+  '0%':   { boxShadow: '0 0 3px 1px rgba(8,192,152,0.35)' },
+  '50%':  { boxShadow: '0 0 14px 5px rgba(8,192,152,0.7)' },
+  '100%': { boxShadow: '0 0 3px 1px rgba(8,192,152,0.35)' },
+});
+
+const useStyles = createStyles(() => ({
+  wrapper: {
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    display: 'flex',
+    pointerEvents: 'none',
+    top: 0,
+    left: 0,
+    zIndex: 2147483647,
+  },
+
+  stack: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.4vw',
+    pointerEvents: 'none',
+  },
+
   textUI: {
     width: 'fit-content',
-    height: '4%',
+    height: '40px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    position: 'absolute',
-    bottom: '4%',
-    left: 0,
-    right: 0,
-    margin: 'auto',
+    gap: '0.5vw',
     fontFamily: 'Barlow, sans-serif',
     fontWeight: 450,
-    gap: '0.5vw',
+    pointerEvents: 'auto',
   },
+
   keyDiv: {
     width: 'fit-content',
     height: '100%',
+    aspectRatio: '1 / 1',
     position: 'relative',
-    padding: '0.3vw 0.35vw',
+    padding: '0.5vw',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: '#08c098',
-    background: '#171A21',
-    borderRadius: 7,
+    backgroundColor: '#0f1114',
+    border: '1px solid #2a2d31',
+    boxShadow: 'inset 0 0 40px 10px rgba(16, 16, 18, 1), 0 4px 12px rgba(0, 0, 0, .3)',
   },
+
   keyDivInside: {
-    width: '80%',
-    height: '67%',
+    width: '100%',
+    height: '100%',
     position: 'relative',
     borderRadius: 4,
     border: '1px solid #08C098',
@@ -42,77 +76,136 @@ const useStyles = createStyles((theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '0.6vw',
-    fontSize: '0.8vw',
+    padding: '0.8vw',
+    fontSize: '18px',
     fontFamily: 'Inter, sans-serif',
     fontWeight: 500,
+    animation: `${glow} 1.8s ease-in-out infinite`,
   },
+
   textContainer: {
-    width: 'fit-content',
+    minWidth: '120px',
     height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     padding: '0 1.9vw',
-    color: '#A5A6AD',
+    color: '#FFF',
     textShadow: '0px 0px 15px rgba(165, 166, 173, 0.45)',
-    background: '#171A21',
     borderRadius: 4,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
-    fontSize: '0.8vw',
-  },
-  indicator: {
-    width: 'fit-content',
-    padding: '0.2vw',
-    height: '18%',
-    position: 'absolute',
-    top: '14%',
-    left: '5%',
-    borderRadius: '0.833px',
-    background: '#08C098',
-    boxShadow: '0px 0px 3.2px 1px rgba(8, 192, 152, 0.37)',
+    fontSize: '18px',
+    backgroundColor: '#0f1114',
+    border: '1px solid #2a2d31',
+    boxShadow: 'inset 0 0 40px 10px rgba(16, 16, 18, 1), 0 4px 12px rgba(0, 0, 0, .3)',
   },
 }));
 
+const getWrapperPositionStyle = (pos: TextUiPosition) => {
+  switch (pos) {
+    case 'top-center':
+      return {
+        alignItems: 'baseline',
+        justifyContent: 'center',
+        paddingTop: '4%',
+      } as const;
+    case 'bottom-center':
+      return {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        paddingBottom: '4%',
+      } as const;
+    case 'left-center':
+      return {
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        paddingLeft: '2%',
+      } as const;
+    case 'right-center':
+      return {
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingRight: '2%',
+      } as const;
+    default:
+      return {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        paddingBottom: '4%',
+      } as const;
+  }
+};
+
+const DEFAULT_POSITION: TextUiPosition = 'bottom-center';
+
 const TextUI = () => {
-  const { classes } = useStyles();
   const [visible, setVisible] = useState(false);
-  const [keyText, setKeyText] = useState('');
-  const [displayText, setDisplayText] = useState('');
-  const [hideKey, setHideKey] = useState(false);
+  const [entries, setEntries] = useState<TextUiEntry[]>([]);
 
-  useNuiEvent('textUI', (data) => {
-    if (data.show) {
-      setKeyText(data.key);
-      setDisplayText(data.text);
-      setVisible(true);
-      setHideKey(data.hide || false);
-    } else {
-      setVisible(false);
+  const { classes } = useStyles();
+
+  useNuiEvent<TextUiMessage>('textUI', (data) => {
+    const list = data.entries ?? [];
+    setEntries(list);
+    setVisible(list.length > 0);
+  });
+
+  const groupedByPosition = useMemo(() => {
+    const groups: Record<TextUiPosition, TextUiEntry[]> = {
+      'top-center': [],
+      'bottom-center': [],
+      'left-center': [],
+      'right-center': [],
+    };
+
+    for (const entry of entries) {
+      const pos = entry.position ?? DEFAULT_POSITION;
+      groups[pos].push(entry);
     }
-  });
 
-  useNuiEvent('textUIUpdate', (data) => {
-    setKeyText(data.key);
-    setDisplayText(data.text);
-  });
+    (Object.keys(groups) as TextUiPosition[]).forEach((pos) => {
+      if (groups[pos].length === 0) {
+        delete groups[pos];
+      }
+    });
+
+    return groups;
+  }, [entries]);
 
   return (
     <Transition mounted={visible} transition="pop" duration={800} timingFunction="ease">
       {(styles) => (
-        <Box className={classes.textUI} style={styles}>
-          {!hideKey && (
-            <Box className={classes.keyDiv}>
-              <Box className={classes.keyDivInside}>{keyText}</Box>
-            </Box>
-          )}
-          <Box className={classes.textContainer}>
-            <Box className={classes.indicator} />
-            <Text>{displayText}</Text>
-          </Box>
-        </Box>
+        <>
+          {Object.entries(groupedByPosition).map(([pos, group]) => {
+            const position = pos as TextUiPosition;
+            const wrapperPosStyle = getWrapperPositionStyle(position);
+
+            return (
+              <Box
+                key={position}
+                className={classes.wrapper}
+                style={{ ...styles, ...wrapperPosStyle }}
+              >
+                <Box className={classes.stack}>
+                  {group.map((entry) => (
+                    <Box key={entry.id} className={classes.textUI}>
+                      {!entry.hideKey && entry.keyText && (
+                        <Box className={classes.keyDiv}>
+                          <Box className={classes.keyDivInside}>{entry.keyText}</Box>
+                        </Box>
+                      )}
+                      <Box className={classes.textContainer}>
+                        <Text>{entry.displayText}</Text>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            );
+          })}
+        </>
       )}
     </Transition>
   );

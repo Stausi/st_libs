@@ -1,6 +1,6 @@
 author "Stausi : shop.stausi.com"
 documentation "https://docs.stausi.com/"
-version "1.0.19"
+version "1.0.20"
 package_id "1"
 
 fx_version "adamant"
@@ -21,14 +21,17 @@ files {
 shared_scripts {
 	'resource/init.lua',
     'resource/**/shared.lua',
+    'resource/**/shared.js',
 }
 
 client_scripts {
     'resource/**/client.lua',
+    'resource/**/clientVeh.lua',
 }
 
 server_scripts {
     'modules/filesInDirectory/server.lua',
     'modules/version-checker/server.lua',
+    "resource/uniqueue/classes/*.lua",
     'resource/**/server.lua',
 }

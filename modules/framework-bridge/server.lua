@@ -162,6 +162,20 @@ function User:getJob()
     return nil
 end
 
+function User:getGroup()
+    if not self.data then 
+        return nil 
+    end
+
+    if st.framework:is("ESX") then
+        return self.data.getGroup and self.data.getGroup() or "user"
+    elseif st.framework:is("QB") then
+        return self.data.PlayerData.group
+    end
+
+    return nil
+end
+
 function User:getJobGrade()
     if not self.data then 
         return 

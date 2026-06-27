@@ -3,6 +3,7 @@ local DisableControlAction = DisableControlAction
 local DisablePlayerFiring = DisablePlayerFiring
 local playerState = LocalPlayer.state
 local createdProps = {}
+local maxProps = GetConvarInt('st:progressPropLimit', 2)
 
 ---@class ProgressPropProps
 ---@field model string
@@ -26,12 +27,14 @@ local createdProps = {}
 ---@field disable? { move?: boolean, sprint?: boolean, car?: boolean, combat?: boolean, mouse?: boolean }
 
 local function createProp(ped, prop)
-    st.requestModel(prop.model)
+    local ok, result = pcall(st.requestModel, prop.model)
+    if not ok then return st.print.error(result) end
+
     local coords = GetEntityCoords(ped)
-    local object = CreateObject(prop.model, coords.x, coords.y, coords.z, false, false, false)
+    local object = CreateObject(result, coords.x, coords.y, coords.z, false, false, false)
 
     AttachEntityToEntity(object, ped, GetPedBoneIndex(ped, prop.bone or 60309), prop.pos.x, prop.pos.y, prop.pos.z, prop.rot.x, prop.rot.y, prop.rot.z, true, true, false, true, prop.rotOrder or 0, true)
-    SetModelAsNoLongerNeeded(prop.model)
+    SetModelAsNoLongerNeeded(result)
 
     return object
 end
@@ -91,10 +94,11 @@ local function startProgress(data)
     end
 
     if data.prop then
-        playerState:set('st:progressProps', data.prop, true)
+        TriggerServerEvent('st_lib:progressProps', data.prop)
     end
 
     local disable = data.disable
+    local startTime = GetGameTimer()
 
     while progress do
         if disable then
@@ -137,7 +141,7 @@ local function startProgress(data)
     end
 
     if data.prop then
-        playerState:set('st:progressProps', nil, true)
+        TriggerServerEvent('st_lib:progressProps', nil)
     end
 
     if anim then
@@ -150,8 +154,9 @@ local function startProgress(data)
     end
 
     playerState.invBusy = false
+    local duration = progress ~= false and GetGameTimer() - startTime + 100
 
-    if progress == false then
+    if progress == false or duration <= data.duration then
         SendNUIMessage({ action = 'progressCancel' })
         return false
     end
@@ -176,6 +181,7 @@ function st.progressBar(data)
         return startProgress(data)
     end
 end
+exports('progressBar', st.progressBar)
 
 ---@param data ProgressProps
 ---@return boolean?
@@ -223,13 +229,15 @@ RegisterKeyMapping('st_cancelprogress', locale('cancel_progress'), 'keyboard', '
 local function deleteProgressProps(serverId)
     local playerProps = createdProps[serverId]
     if not playerProps then return end
+    createdProps[serverId] = nil
+
     for i = 1, #playerProps do
         local prop = playerProps[i]
+
         if DoesEntityExist(prop) then
             DeleteEntity(prop)
         end
     end
-    createdProps[serverId] = nil
 end
 
 RegisterNetEvent('onPlayerDropped', function(serverId)
@@ -244,23 +252,68 @@ AddStateBagChangeHandler('st:progressProps', nil, function(bagName, key, value, 
 
     local ped = GetPlayerPed(ply)
     local serverId = GetPlayerServerId(ply)
-    
-    if not value then
+
+    if not value or createdProps[serverId] then
         return deleteProgressProps(serverId)
     end
-    
-    createdProps[serverId] = {}
-    local playerProps = createdProps[serverId]
-    
+
+    local playerProps = {}
+
     if value.model then
-        playerProps[#playerProps+1] = createProp(ped, value)
+        local prop = createProp(ped, value)
+
+        if prop then
+            playerProps[#playerProps + 1] = prop
+        end
     else
-        for i = 1, #value do
-            local prop = value[i]
+        local propCount = math.min(maxProps, #value)
+
+        for i = 1, propCount do
+            local prop = createProp(ped, value[i])
 
             if prop then
-                playerProps[#playerProps+1] = createProp(ped, prop)
+                playerProps[#playerProps + 1] = prop
             end
         end
     end
+
+    createdProps[serverId] = playerProps
+end)
+
+local function exportRProgressHandler(exportName, func)
+    AddEventHandler(('__cfx_export_rprogress_%s'):format(exportName), function(setCB)
+        setCB(func)
+    end)
+end
+
+exportRProgressHandler('Custom', function(data)
+    if st.progressBar({
+        duration = data.Duration,
+        label = data.Label,
+        anim = {
+            scenario = data.Animation?.scenario,
+        },
+        disable = {
+            move = data.DisableControls?.Player,
+            car = data.DisableControls?.Vehicle,
+            combat = data.DisableControls?.Player,
+        }
+    }) then
+        if data.onComplete then
+            data.onComplete()
+        end
+    end
+end)
+
+local function exportProgressBarsHandler(exportName, func)
+    AddEventHandler(('__cfx_export_progressBars_%s'):format(exportName), function(setCB)
+        setCB(func)
+    end)
+end
+
+exportProgressBarsHandler('startUI', function(duration, label)
+    st.progressBar({
+        duration = duration,
+        label = label,
+    })
 end)

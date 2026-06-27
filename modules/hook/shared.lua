@@ -67,6 +67,7 @@ function st.hook.registerFilter(name, fct, priority)
         resource = GetInvokingResource() or GetCurrentResourceName()
     })
 end
+exports('registerFilter', st.hook.registerFilter)
 
 ---@param name string the name of the filter
 ---@param value any the value to filter

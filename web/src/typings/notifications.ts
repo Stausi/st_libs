@@ -16,4 +16,5 @@ export interface NotificationProps {
   id?: number | string;
   type?: string;
   alignIcon?: 'top' | 'center';
+  persistent?: boolean;
 }
