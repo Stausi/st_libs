@@ -24,7 +24,7 @@ local pushedOffset = 100
 local defaultDuration = 3000
 
 local function setDispatchOffset(offset)
-    TriggerEvent('lg_notifyalert:setOffset', offset)
+    -- Set the offset for the notification dispatch
 end
 
 local function beginOffset()

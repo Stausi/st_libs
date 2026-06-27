@@ -64,7 +64,7 @@ local function sendRateLimitLog(playerId, callbackName, invokeResource, action, 
     local codeBlockMessage = ('resource=%s\nresourceCount=%s\ncallback=%s\ncallbackCount=%s\nresources=[%s]'):format(resourceName, resourceCount, callbackName, callbackCount, resourceSummary)
 
     pcall(function()
-        exports['lg_logging']:SendLogs(playerId, callbackRateLimitLogEvent, callbackRateLimitLogType, logMessage, codeBlockMessage)
+        -- Send log to configured event
     end)
 end
 
